@@ -1,0 +1,10 @@
+{
+  "extension_name": "Web Crawler",
+  "extension_desc": "Helps you crawl metadata, titles, and links from any website.",
+  "api_endpoint": "Web Scraper API",
+  "scrape_button": "Start Crawling",
+  "url_placeholder": "Enter website URL (e.g., https://example.com)...",
+  "results": "Results",
+  "error_missing_lib": "Missing required libraries. Please run: pip install beautifulsoup4",
+  "error_processing": "An error occurred while processing the URL."
+}

@@ -1,0 +1,10 @@
+{
+  "extension_name": "Trình thu thập Website",
+  "extension_desc": "Giúp thu thập siêu dữ liệu, tiêu đề và liên kết từ bất kỳ trang web nào.",
+  "api_endpoint": "API Lấy dữ liệu Web",
+  "scrape_button": "Bắt đầu quét",
+  "url_placeholder": "Nhập địa chỉ trang web (vd: https://dantri.com.vn)...",
+  "results": "Kết quả",
+  "error_missing_lib": "Thiếu thư viện cần thiết. Vui lòng chạy lệnh: pip install beautifulsoup4",
+  "error_processing": "Có lỗi xảy ra khi xử lý URL."
+}

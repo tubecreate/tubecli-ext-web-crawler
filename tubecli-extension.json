@@ -1,0 +1,21 @@
+{
+  "name": "web_crawler",
+  "version": "1.0.0",
+  "description": "Web Crawler — Trích xuất dữ liệu, dịch, và thao tác với đăng tải nội dung WordPress",
+  "author": "TubeCreate",
+  "icon": "🕸️",
+  "entry": "extension.py",
+  "extension_class": "WebCrawlerExtension",
+  "category": "extension",
+  "tags": ["crawler", "scraper", "wordpress", "ai"],
+  "dependencies": [
+    "beautifulsoup4",
+    "lxml",
+    "httpx"
+  ],
+  "nodes": [],
+  "skill_md": "SKILL.md",
+  "ui_static": "static",
+  "api_prefix": "/api/v1/web_crawler",
+  "min_tubecli_version": "0.1.0"
+}

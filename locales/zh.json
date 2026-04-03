@@ -1,0 +1,10 @@
+{
+  "extension_name": "网页抓取工具",
+  "extension_desc": "帮助您从任何网站抓取元数据、标题和链接。",
+  "api_endpoint": "网页抓取 API",
+  "scrape_button": "开始抓取",
+  "url_placeholder": "输入网站URL (例如: https://example.com)...",
+  "results": "结果",
+  "error_missing_lib": "缺少必要的库。请运行: pip install beautifulsoup4",
+  "error_processing": "处理URL时发生错误。"
+}
