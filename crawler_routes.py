@@ -273,11 +273,14 @@ class WPPublishRequest(BaseModel):
     app_password: str
     title: str
     content: str
-    status: str = "draft" # draft or publish
+    status: str = "draft"  # draft or publish
+    thumbnail_url: Optional[str] = None  # URL ảnh để set làm Featured Image
+    category_name: Optional[str] = None  # Tên category (tự tạo nếu chưa có)
+    category_id: Optional[int] = None    # ID category (ưu tiên nếu có)
 
 @router.post("/publish_wp")
 async def publish_to_wordpress(req: WPPublishRequest):
-    """Đăng tự động nội dung lên cấu trúc Website chạy nền tảng WordPress"""
+    """Đăng tự động nội dung lên WordPress — hỗ trợ thumbnail & category."""
     import base64
     import httpx
     
@@ -285,10 +288,8 @@ async def publish_to_wordpress(req: WPPublishRequest):
     base_url = req.wp_url.strip().rstrip('/')
     if not base_url.startswith('http'):
         base_url = 'https://' + base_url
-        
-    endpoint = f"{base_url}/wp-json/wp/v2/posts"
     
-    # Tạo chuỗi Auth Authentication chuẩn
+    # Tạo chuỗi Auth
     credentials = f"{req.username}:{req.app_password}"
     token = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
     headers = {
@@ -296,19 +297,37 @@ async def publish_to_wordpress(req: WPPublishRequest):
         'Content-Type': 'application/json'
     }
     
-    # Format Content với xuống dòng HTML
-    html_content = req.content.replace('\n', '<br>')
-    
-    payload = {
-        'title': req.title,
-        'content': html_content,
-        'status': req.status
-    }
-    
     try:
-        current_app_timeout = 30.0
-        async with httpx.AsyncClient() as client:
-            res = await client.post(endpoint, headers=headers, json=payload, timeout=current_app_timeout)
+        async with httpx.AsyncClient(timeout=60) as client:
+            # ── Step 1: Resolve category ──
+            category_id = req.category_id
+            if not category_id and req.category_name:
+                category_id = await _resolve_wp_category(
+                    client, base_url, headers, req.category_name
+                )
+
+            # ── Step 2: Upload thumbnail ──
+            featured_media_id = None
+            if req.thumbnail_url:
+                featured_media_id = await _upload_wp_thumbnail(
+                    client, base_url, token, req.thumbnail_url, req.title
+                )
+
+            # ── Step 3: Create post ──
+            html_content = req.content.replace('\n', '<br>')
+            
+            payload = {
+                'title': req.title,
+                'content': html_content,
+                'status': req.status
+            }
+            if category_id:
+                payload['categories'] = [category_id]
+            if featured_media_id:
+                payload['featured_media'] = featured_media_id
+            
+            endpoint = f"{base_url}/wp-json/wp/v2/posts"
+            res = await client.post(endpoint, headers=headers, json=payload, timeout=30)
             
             if res.status_code in [200, 201]:
                 data = res.json()
@@ -316,7 +335,9 @@ async def publish_to_wordpress(req: WPPublishRequest):
                     "success": True, 
                     "message": "Đăng tải bài thành công!", 
                     "post_url": data.get("link", ""), 
-                    "post_id": data.get("id")
+                    "post_id": data.get("id"),
+                    "category_id": category_id,
+                    "featured_media_id": featured_media_id,
                 }
             else:
                 error_msg = res.text
@@ -331,3 +352,311 @@ async def publish_to_wordpress(req: WPPublishRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+async def _resolve_wp_category(client, base_url: str, headers: dict, category_name: str) -> Optional[int]:
+    """Tìm category theo tên, tự tạo mới nếu chưa có. Trả về category ID."""
+    try:
+        # Search existing categories
+        search_url = f"{base_url}/wp-json/wp/v2/categories?search={category_name}&per_page=100"
+        res = await client.get(search_url, headers=headers, timeout=10)
+        if res.status_code == 200:
+            cats = res.json()
+            # Exact match (case-insensitive)
+            for cat in cats:
+                if cat.get("name", "").lower().strip() == category_name.lower().strip():
+                    return cat["id"]
+            # Partial match
+            for cat in cats:
+                if category_name.lower().strip() in cat.get("name", "").lower():
+                    return cat["id"]
+
+        # Not found — create new category
+        create_res = await client.post(
+            f"{base_url}/wp-json/wp/v2/categories",
+            headers=headers,
+            json={"name": category_name},
+            timeout=10
+        )
+        if create_res.status_code in [200, 201]:
+            return create_res.json().get("id")
+        
+        logger.warning(f"Failed to create WP category '{category_name}': {create_res.status_code}")
+    except Exception as e:
+        logger.warning(f"Category resolve error: {e}")
+    return None
+
+
+async def _upload_wp_thumbnail(client, base_url: str, auth_token: str, 
+                                image_url: str, post_title: str) -> Optional[int]:
+    """Download ảnh từ URL và upload lên WordPress Media Library. Trả về media ID."""
+    try:
+        # Download image
+        img_resp = await client.get(image_url, timeout=30, follow_redirects=True)
+        if img_resp.status_code != 200:
+            logger.warning(f"Failed to download thumbnail: {image_url} → HTTP {img_resp.status_code}")
+            return None
+
+        img_data = img_resp.content
+        if len(img_data) < 1000:  # Skip tiny/broken images
+            return None
+
+        # Detect filename & content type
+        from urllib.parse import urlparse as _urlparse
+        parsed = _urlparse(image_url)
+        path_parts = parsed.path.split("/")
+        filename = path_parts[-1] if path_parts else "thumbnail.jpg"
+        # Clean filename
+        filename = filename.split("?")[0]
+        if "." not in filename:
+            filename += ".jpg"
+
+        content_type = img_resp.headers.get("content-type", "image/jpeg")
+        if "png" in content_type:
+            content_type = "image/png"
+        elif "webp" in content_type:
+            content_type = "image/webp"
+        elif "gif" in content_type:
+            content_type = "image/gif"
+        else:
+            content_type = "image/jpeg"
+
+        # Upload to WP Media
+        upload_headers = {
+            'Authorization': f'Basic {auth_token}',
+            'Content-Type': content_type,
+            'Content-Disposition': f'attachment; filename="{filename}"',
+        }
+        
+        upload_res = await client.post(
+            f"{base_url}/wp-json/wp/v2/media",
+            headers=upload_headers,
+            content=img_data,
+            timeout=30
+        )
+
+        if upload_res.status_code in [200, 201]:
+            media_id = upload_res.json().get("id")
+            logger.info(f"✅ Uploaded thumbnail: {filename} → media_id={media_id}")
+            return media_id
+        else:
+            logger.warning(f"WP media upload failed: {upload_res.status_code} — {upload_res.text[:200]}")
+    except Exception as e:
+        logger.warning(f"Thumbnail upload error: {e}")
+    return None
+
+
+@router.get("/wp_categories")
+async def list_wp_categories(wp_url: str, username: str, app_password: str):
+    """Lấy danh sách categories từ WordPress site."""
+    import base64
+    import httpx
+    
+    base_url = wp_url.strip().rstrip('/')
+    if not base_url.startswith('http'):
+        base_url = 'https://' + base_url
+    
+    credentials = f"{username}:{app_password}"
+    token = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
+    headers = {'Authorization': f'Basic {token}'}
+    
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            res = await client.get(
+                f"{base_url}/wp-json/wp/v2/categories?per_page=100",
+                headers=headers
+            )
+            if res.status_code == 200:
+                cats = res.json()
+                return {
+                    "success": True,
+                    "categories": [{"id": c["id"], "name": c["name"], "count": c.get("count", 0)} for c in cats]
+                }
+            raise HTTPException(400, detail=f"WP API error: {res.status_code}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+# ══════════════════════════════════════════════════════════════
+# PAGE WATCHER ROUTES
+# ══════════════════════════════════════════════════════════════
+
+class WatchRequest(BaseModel):
+    url: str
+    interval_hours: float = 6
+    target_site: str = ""
+    instruction: str = "dịch sang tiếng anh"
+    max_articles_per_check: int = 5
+    url_pattern: Optional[str] = None
+    wp_category_name: Optional[str] = None
+
+
+@router.get("/watches")
+async def list_watches():
+    """Lấy danh sách các trang đang theo dõi."""
+    try:
+        from watcher import page_watcher
+        watches = page_watcher.list_watches()
+        return {"success": True, "watches": watches, "count": len(watches)}
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.post("/watches")
+async def create_watch(req: WatchRequest):
+    """Tạo một watch mới."""
+    try:
+        from watcher import page_watcher
+
+        url = req.url
+        if not url.startswith("http"):
+            url = "https://" + url
+
+        watch = page_watcher.add_watch(
+            url=url,
+            interval_hours=req.interval_hours,
+            target_site=req.target_site,
+            instruction=req.instruction,
+            max_articles_per_check=req.max_articles_per_check,
+            url_pattern=req.url_pattern,
+            wp_category_name=req.wp_category_name,
+        )
+
+        # Ensure scheduler is running
+        page_watcher.start_scheduler()
+
+        return {"success": True, "watch": watch.to_dict()}
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.delete("/watches/{watch_id}")
+async def delete_watch(watch_id: str):
+    """Xoá một watch."""
+    try:
+        from watcher import page_watcher
+        if page_watcher.remove_watch(watch_id):
+            return {"success": True}
+        raise HTTPException(404, detail="Watch not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.patch("/watches/{watch_id}/pause")
+async def pause_watch(watch_id: str):
+    """Tạm dừng theo dõi."""
+    try:
+        from watcher import page_watcher
+        if page_watcher.pause_watch(watch_id):
+            return {"success": True, "status": "paused"}
+        raise HTTPException(404, detail="Watch not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.patch("/watches/{watch_id}/resume")
+async def resume_watch(watch_id: str):
+    """Tiếp tục theo dõi."""
+    try:
+        from watcher import page_watcher
+        if page_watcher.resume_watch(watch_id):
+            return {"success": True, "status": "active"}
+        raise HTTPException(404, detail="Watch not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.post("/watches/{watch_id}/check_now")
+async def check_now(watch_id: str):
+    """Force check ngay lập tức."""
+    try:
+        from watcher import page_watcher
+        import asyncio
+
+        watch = page_watcher.get_watch(watch_id)
+        if not watch:
+            raise HTTPException(404, detail="Watch not found")
+
+        # Run check in background to avoid HTTP timeout
+        result = await asyncio.wait_for(
+            page_watcher.check_watch(watch_id),
+            timeout=120
+        )
+        return {"success": True, "result": result}
+    except HTTPException:
+        raise
+    except asyncio.TimeoutError:
+        return {"success": False, "detail": "Check timed out (>120s), but may still be running in background."}
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.get("/watches/{watch_id}/logs")
+async def get_watch_logs(watch_id: str, limit: int = 50):
+    """Lấy lịch sử hoạt động của một watch."""
+    try:
+        from watcher import page_watcher
+        logs = page_watcher.get_logs(watch_id, limit=limit)
+        return {"success": True, "logs": logs}
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.post("/watches/{watch_id}/test_pipeline")
+async def test_pipeline(watch_id: str):
+    """Test pipeline trên 1 bài — chạy scrape → AI rewrite → publish để kiểm tra."""
+    try:
+        from watcher import page_watcher
+        import httpx
+
+        watch = page_watcher.get_watch(watch_id)
+        if not watch:
+            raise HTTPException(404, detail="Watch not found")
+
+        # Get a test article URL from processed_urls or fresh scrape
+        test_url = None
+        if watch.processed_urls:
+            test_url = watch.processed_urls[0]
+        else:
+            # Scrape the watch page to get a link
+            async with httpx.AsyncClient(timeout=60) as client:
+                resp = await client.post(
+                    f"http://localhost:5295/api/v1/web_crawler/scrape",
+                    json={"url": watch.url, "max_depth": 0, "download_images": False}
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    pages = data.get("data", data) if isinstance(data, dict) else data
+                    if isinstance(pages, list) and pages:
+                        links = pages[0].get("links", [])
+                        filtered = watch._filter_article_links(links, watch) if hasattr(watch, '_filter_article_links') else links[:1]
+                        if filtered:
+                            test_url = filtered[0]
+
+        if not test_url:
+            return {"success": False, "detail": "Không tìm được bài viết nào để test."}
+
+        # Run the pipeline on this article
+        result = await page_watcher._process_article(test_url, watch)
+
+        return {
+            "success": True,
+            "test_url": test_url,
+            "pipeline_result": result,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(500, detail=str(e))
+

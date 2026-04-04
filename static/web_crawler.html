@@ -83,6 +83,53 @@ select.lang-switch { background: var(--card2); color: var(--text); border: 1px s
 .wp-input-group { margin-bottom: 12px;}
 .wp-label { display:block; font-size:12px; color:var(--text2); margin-bottom:4px;}
 .wp-input { width: 100%; background: var(--bg); border: 1px solid #1e293b; color: var(--text); padding: 8px; border-radius: 6px; font-size: 13px; outline: none;}
+
+/* Tab Navigation */
+.tab-nav { display:flex; gap:4px; flex-shrink:0; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:4px; margin-bottom:0; }
+.tab-btn { padding:10px 24px; border-radius:8px; border:none; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font); transition:all 0.2s; background:transparent; color:var(--text3); position:relative; }
+.tab-btn:hover { color:var(--text); background:rgba(255,255,255,0.05); }
+.tab-btn.active { background:linear-gradient(135deg, rgba(34,211,238,0.15), rgba(6,182,212,0.1)); color:var(--accent); }
+.tab-btn .tab-badge { position:absolute; top:4px; right:8px; background:var(--accent); color:#000; font-size:10px; font-weight:700; border-radius:10px; padding:1px 6px; min-width:18px; }
+
+/* Watcher Panel Styles */
+.watcher-panel { flex:1; display:none; flex-direction:column; gap:16px; overflow:hidden; }
+.watcher-panel.visible { display:flex; }
+
+.watch-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; transition:all 0.2s; }
+.watch-card:hover { border-color:var(--border-hover); }
+.watch-card .watch-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+.watch-card .watch-url { font-size:14px; font-weight:600; color:var(--accent); word-break:break-all; }
+.watch-card .watch-meta { display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--text2); margin-bottom:8px; }
+.watch-card .watch-meta span { display:flex; align-items:center; gap:4px; }
+.watch-card .watch-actions { display:flex; gap:8px; flex-shrink:0; }
+
+.watch-status { display:inline-block; padding:2px 10px; border-radius:10px; font-size:11px; font-weight:600; }
+.watch-status.active { background:rgba(34,197,94,0.15); color:var(--green); }
+.watch-status.paused { background:rgba(234,179,8,0.15); color:#eab308; }
+.watch-status.error { background:rgba(244,63,94,0.15); color:var(--red); }
+
+.watch-btn { padding:5px 12px; border-radius:6px; border:1px solid var(--border); font-size:11px; font-weight:500; cursor:pointer; font-family:var(--font); transition:all 0.15s; background:var(--bg); color:var(--text2); }
+.watch-btn:hover { border-color:var(--accent); color:var(--accent); }
+.watch-btn.danger:hover { border-color:var(--red); color:var(--red); }
+.watch-btn.primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#000; border:none; }
+.watch-btn.primary:hover { filter:brightness(1.1); }
+
+.watch-form { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; flex-shrink:0; }
+.watch-form .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+.watch-form .form-full { grid-column:1/-1; }
+.watch-form label { display:block; font-size:12px; color:var(--text2); margin-bottom:4px; font-weight:500; }
+.watch-form input, .watch-form select { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); padding:8px 12px; font-size:13px; font-family:var(--font); outline:none; transition:border 0.2s; }
+.watch-form input:focus, .watch-form select:focus { border-color:var(--accent); }
+
+.watcher-list { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:12px; padding-right:4px; }
+.watcher-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; text-align:center; color:var(--text3); }
+.watcher-empty .icon { font-size:48px; margin-bottom:16px; }
+
+/* Log panel */
+.log-panel { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; margin-top:8px; max-height:200px; overflow-y:auto; }
+.log-entry { font-size:12px; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.03); display:flex; gap:8px; }
+.log-entry .log-time { color:var(--text3); flex-shrink:0; }
+.log-entry .log-msg { color:var(--text2); }
 </style>
 </head>
 <body>
@@ -100,6 +147,11 @@ select.lang-switch { background: var(--card2); color: var(--text); border: 1px s
 </div>
 
 <div class="main">
+    <!-- Tab Navigation -->
+    <div class="tab-nav" id="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('crawler')" id="tab-crawler">🕸️ Cào Dữ Liệu</button>
+        <button class="tab-btn" onclick="switchTab('watcher')" id="tab-watcher">📡 Theo Dõi Trang <span class="tab-badge" id="watch-count-badge" style="display:none">0</span></button>
+    </div>
     <div class="input-area" id="input-area">
         <input type="text" id="url-input" class="url-input" placeholder="Nhập URL bài báo hoặc Categories để cào..." data-i18n-attr="url_placeholder">
         
@@ -175,6 +227,50 @@ select.lang-switch { background: var(--card2); color: var(--text); border: 1px s
                 <div style="display:flex; justify-content:center; align-items:center; height:100%; color:var(--text3); font-style:italic;">
                     Chọn một bài viết ở cột trái để bắt đầu Biên tập & Đăng bài.
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ WATCHER PANEL ═══ -->
+    <div class="watcher-panel" id="watcher-panel">
+        <!-- Add Watch Form -->
+        <div class="watch-form">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 style="font-size:15px; color:var(--accent);">📡 Thêm Trang Theo Dõi Mới</h3>
+            </div>
+            <div class="form-grid">
+                <div class="form-full">
+                    <label>URL trang cần theo dõi</label>
+                    <input type="text" id="watch-url" placeholder="https://vnexpress.net/the-gioi" />
+                </div>
+                <div>
+                    <label>Kiểm tra mỗi (giờ)</label>
+                    <input type="number" id="watch-interval" value="6" min="1" max="168" />
+                </div>
+                <div>
+                    <label>Tối đa bài/lần check</label>
+                    <input type="number" id="watch-max-articles" value="5" min="1" max="20" />
+                </div>
+                <div>
+                    <label>Website đích (WordPress)</label>
+                    <select id="watch-target-site">
+                        <option value="">-- Chọn website --</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Lệnh xử lý AI</label>
+                    <input type="text" id="watch-instruction" value="dịch sang tiếng anh" placeholder="dịch sang tiếng anh" />
+                </div>
+            </div>
+            <button class="watch-btn primary" onclick="createWatch()" style="padding:10px 24px; font-size:13px;">➕ Bắt đầu Theo dõi</button>
+        </div>
+
+        <!-- Watch List -->
+        <div class="watcher-list" id="watcher-list">
+            <div class="watcher-empty">
+                <div class="icon">📡</div>
+                <div style="font-size:16px; font-weight:600; margin-bottom:8px;">Chưa có trang nào đang theo dõi</div>
+                <div style="font-size:13px;">Thêm URL phía trên để bắt đầu tự động kiểm tra & đăng bài mới</div>
             </div>
         </div>
     </div>
@@ -768,7 +864,278 @@ async function saveWpSite() {
 // Execute immediately
 loadWpSites();
 
-window.onload = () => { loadLocales(); }
+// ══════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ══════════════════════════════════════════════════════════════
+
+let currentTab = 'crawler';
+
+function switchTab(tab) {
+    currentTab = tab;
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+
+    // Toggle panels
+    const crawlerEls = ['input-area', 'welcome-panel', 'workspace-grid'];
+    const watcherPanel = document.getElementById('watcher-panel');
+
+    if (tab === 'crawler') {
+        crawlerEls.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = el.dataset.prevDisplay || '';
+        });
+        watcherPanel.classList.remove('visible');
+    } else {
+        // Hide crawler elements, remembering their display state
+        crawlerEls.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.dataset.prevDisplay = el.style.display;
+                el.style.display = 'none';
+            }
+        });
+        watcherPanel.classList.add('visible');
+        loadWatches();
+        populateWatchTargetSites();
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+// WATCHER UI LOGIC
+// ══════════════════════════════════════════════════════════════
+
+let watchesData = [];
+
+function populateWatchTargetSites() {
+    const sel = document.getElementById('watch-target-site');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">-- Chọn website --</option>';
+    wpSites.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.name || s.url;
+        opt.textContent = `${s.name} (${s.url})`;
+        sel.appendChild(opt);
+    });
+}
+
+async function loadWatches() {
+    try {
+        const res = await fetch('/api/v1/web_crawler/watches');
+        const data = await res.json();
+        if (data.success) {
+            watchesData = data.watches || [];
+            renderWatchesList();
+            updateWatchBadge();
+        }
+    } catch (e) {
+        console.error('Failed to load watches:', e);
+    }
+}
+
+function updateWatchBadge() {
+    const badge = document.getElementById('watch-count-badge');
+    const activeCount = watchesData.filter(w => w.status === 'active').length;
+    if (activeCount > 0) {
+        badge.textContent = activeCount;
+        badge.style.display = 'inline';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+function renderWatchesList() {
+    const container = document.getElementById('watcher-list');
+
+    if (watchesData.length === 0) {
+        container.innerHTML = `
+            <div class="watcher-empty">
+                <div class="icon">📡</div>
+                <div style="font-size:16px; font-weight:600; margin-bottom:8px;">Chưa có trang nào đang theo dõi</div>
+                <div style="font-size:13px;">Thêm URL phía trên để bắt đầu tự động kiểm tra & đăng bài mới</div>
+            </div>`;
+        return;
+    }
+
+    container.innerHTML = '';
+    watchesData.forEach(w => {
+        const statusClass = w.status || 'active';
+        const statusText = w.status === 'active' ? '🟢 Đang chạy' : w.status === 'paused' ? '⏸️ Tạm dừng' : '🔴 Lỗi';
+        const nextCheck = w.next_check_at ? w.next_check_at.slice(0, 16).replace('T', ' ') : 'N/A';
+        const lastCheck = w.last_checked_at ? w.last_checked_at.slice(0, 16).replace('T', ' ') : 'Chưa check';
+        const published = (w.stats || {}).total_published || 0;
+        const checked = (w.stats || {}).total_checked || 0;
+        const isInit = w.is_initialized;
+
+        const card = document.createElement('div');
+        card.className = 'watch-card';
+        card.innerHTML = `
+            <div class="watch-header">
+                <div style="flex:1;">
+                    <div class="watch-url">${escHtml(w.url)}</div>
+                    <div style="margin-top:6px;">
+                        <span class="watch-status ${statusClass}">${statusText}</span>
+                        ${!isInit ? '<span style="margin-left:8px; font-size:11px; color:#eab308;">⏳ Chờ snapshot lần đầu</span>' : ''}
+                    </div>
+                </div>
+                <div class="watch-actions">
+                    ${w.status === 'active' 
+                        ? `<button class="watch-btn" onclick="pauseWatch('${w.id}')">⏸️ Dừng</button>` 
+                        : `<button class="watch-btn" onclick="resumeWatch('${w.id}')">▶️ Tiếp</button>`}
+                    <button class="watch-btn" onclick="checkNow('${w.id}')" title="Kiểm tra ngay">🔍 Check</button>
+                    <button class="watch-btn danger" onclick="deleteWatch('${w.id}')" title="Xóa">🗑️</button>
+                </div>
+            </div>
+            <div class="watch-meta">
+                <span>⏰ Mỗi ${w.interval_hours}h</span>
+                <span>🎯 ${escHtml(w.target_site || 'Chưa chọn')}</span>
+                <span>📝 ${escHtml(w.instruction || 'N/A')}</span>
+                <span>📊 ${published} bài đã đăng / ${checked} lần check</span>
+            </div>
+            <div class="watch-meta">
+                <span>🕐 Check gần nhất: ${lastCheck}</span>
+                <span>⏭️ Check tiếp: ${nextCheck}</span>
+                <span>📦 Đã xử lý: ${(w.processed_urls || []).length} URLs</span>
+            </div>
+            <div style="margin-top:8px;">
+                <button class="watch-btn" onclick="toggleLogs('${w.id}')" style="font-size:11px;">📋 Xem logs</button>
+                <div id="logs-${w.id}" style="display:none;"></div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+async function createWatch() {
+    const url = document.getElementById('watch-url').value.trim();
+    if (!url) { toast('Nhập URL cần theo dõi!', 'error'); return; }
+
+    const interval = parseFloat(document.getElementById('watch-interval').value) || 6;
+    const maxArticles = parseInt(document.getElementById('watch-max-articles').value) || 5;
+    const targetSite = document.getElementById('watch-target-site').value;
+    const instruction = document.getElementById('watch-instruction').value.trim();
+
+    if (!targetSite) { toast('Chọn website đích WordPress!', 'error'); return; }
+
+    try {
+        const res = await fetch('/api/v1/web_crawler/watches', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                url,
+                interval_hours: interval,
+                target_site: targetSite,
+                instruction: instruction || 'dịch sang tiếng anh',
+                max_articles_per_check: maxArticles,
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            toast('✅ Đã tạo watch thành công!', 'success');
+            document.getElementById('watch-url').value = '';
+            loadWatches();
+        } else {
+            toast('Lỗi: ' + (data.detail || 'Unknown'), 'error');
+        }
+    } catch (e) {
+        toast('Lỗi kết nối: ' + e.message, 'error');
+    }
+}
+
+async function deleteWatch(id) {
+    if (!confirm('Bạn chắc chắn muốn xóa watch này?')) return;
+    try {
+        await fetch(`/api/v1/web_crawler/watches/${id}`, { method: 'DELETE' });
+        toast('Đã xóa watch', 'success');
+        loadWatches();
+    } catch (e) {
+        toast('Lỗi xóa', 'error');
+    }
+}
+
+async function pauseWatch(id) {
+    try {
+        await fetch(`/api/v1/web_crawler/watches/${id}/pause`, { method: 'PATCH' });
+        toast('⏸️ Đã tạm dừng', 'success');
+        loadWatches();
+    } catch (e) { toast('Lỗi', 'error'); }
+}
+
+async function resumeWatch(id) {
+    try {
+        await fetch(`/api/v1/web_crawler/watches/${id}/resume`, { method: 'PATCH' });
+        toast('▶️ Đã tiếp tục', 'success');
+        loadWatches();
+    } catch (e) { toast('Lỗi', 'error'); }
+}
+
+async function checkNow(id) {
+    toast('🔍 Đang kiểm tra... (có thể mất 1-2 phút)', 'success');
+    try {
+        const res = await fetch(`/api/v1/web_crawler/watches/${id}/check_now`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            const r = data.result || {};
+            const pub = (r.published || []).length;
+            const errs = (r.errors || []).length;
+            const newCount = (r.new_articles || []).length;
+            if (r.message) {
+                toast(r.message, 'success');
+            } else if (newCount > 0) {
+                toast(`🆕 ${newCount} bài mới | ✅ ${pub} đã đăng | ❌ ${errs} lỗi`, 'success');
+            } else {
+                toast('Không có bài mới', 'success');
+            }
+            loadWatches();
+        } else {
+            toast('Lỗi: ' + (data.detail || 'Unknown'), 'error');
+        }
+    } catch (e) {
+        toast('Lỗi kết nối: ' + e.message, 'error');
+    }
+}
+
+async function toggleLogs(id) {
+    const container = document.getElementById(`logs-${id}`);
+    if (!container) return;
+
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        container.innerHTML = '<div style="padding:8px; color:var(--text3); font-size:12px;">Đang tải...</div>';
+        try {
+            const res = await fetch(`/api/v1/web_crawler/watches/${id}/logs?limit=20`);
+            const data = await res.json();
+            if (data.success && data.logs.length > 0) {
+                const logsHtml = data.logs.reverse().map(l => {
+                    const time = (l.timestamp || '').slice(0, 16).replace('T', ' ');
+                    const icon = l.type === 'error' ? '❌' : l.type === 'init' ? '📸' : l.type === 'check_complete' ? '✅' : '🔍';
+                    return `<div class="log-entry"><span class="log-time">${time}</span><span class="log-msg">${icon} ${escHtml(l.message || '')}</span></div>`;
+                }).join('');
+                container.innerHTML = `<div class="log-panel">${logsHtml}</div>`;
+            } else {
+                container.innerHTML = '<div class="log-panel"><div style="font-size:12px; color:var(--text3);">Chưa có log nào.</div></div>';
+            }
+        } catch (e) {
+            container.innerHTML = '<div class="log-panel"><div style="color:var(--red); font-size:12px;">Lỗi tải logs</div></div>';
+        }
+    } else {
+        container.style.display = 'none';
+    }
+}
+
+// Load watch count on page load
+async function loadWatchBadge() {
+    try {
+        const res = await fetch('/api/v1/web_crawler/watches');
+        const data = await res.json();
+        if (data.success) {
+            watchesData = data.watches || [];
+            updateWatchBadge();
+        }
+    } catch(e) {}
+}
+
+window.onload = () => { loadLocales(); loadWatchBadge(); }
 </script>
 </body>
 </html>
