@@ -8,30 +8,30 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-    --bg: #060813;
-    --bg-glass: rgba(10, 14, 26, 0.8);
-    --card: rgba(16, 22, 42, 0.55);
-    --card-hover: rgba(24, 32, 60, 0.7);
-    --border: rgba(255, 255, 255, 0.05);
-    --border-hover: rgba(6, 182, 212, 0.3);
-    --text: #f1f5f9;
-    --text2: #cbd5e1;
-    --text3: #64748b;
-    --accent: #06b6d4;
-    --accent-glow: rgba(6, 182, 212, 0.15);
-    --accent2: #8b5cf6;
-    --accent2-glow: rgba(139, 92, 246, 0.15);
-    --red: #f43f5e;
-    --green: #10b981;
+    --bg: #1a1a1a;
+    --bg-glass: rgba(26, 26, 26, 0.85);
+    --card: #262626;
+    --card-hover: #303030;
+    --border: #333;
+    --border-hover: rgba(82, 118, 235, 0.3);
+    --text: #ededed;
+    --text2: #9ca3af;
+    --text3: #6b7280;
+    --accent: #5276eb;
+    --accent-glow: rgba(82, 118, 235, 0.15);
+    --accent2: #7c5ce7;
+    --accent2-glow: rgba(124, 92, 231, 0.15);
+    --red: #ef4444;
+    --green: #22c55e;
     --font: 'Inter', system-ui, -apple-system, sans-serif;
-    --radius: 12px;
+    --radius: 10px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
     font-family: var(--font);
     background: var(--bg);
-    background-image: radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.04) 0%, transparent 40%),
-                      radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.04) 0%, transparent 40%);
+    background-image: radial-gradient(circle at 10% 20%, rgba(82, 118, 235, 0.04) 0%, transparent 40%),
+                      radial-gradient(circle at 90% 80%, rgba(124, 92, 231, 0.04) 0%, transparent 40%);
     color: var(--text);
     height: 100vh;
     display: flex;
@@ -95,7 +95,7 @@ select.lang-switch:hover { border-color: var(--border-hover); }
 }
 .url-input {
     width: 100%;
-    background: rgba(0, 0, 0, 0.45) !important;
+    background: #141414 !important;
     border: 1px solid var(--border) !important;
     border-radius: 8px;
     color: var(--text) !important;
@@ -109,7 +109,7 @@ select.lang-switch:hover { border-color: var(--border-hover); }
 .url-input:-webkit-autofill:hover, 
 .url-input:-webkit-autofill:focus, 
 .url-input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 1000px #080c1d inset !important;
+    -webkit-box-shadow: 0 0 0 1000px #141414 inset !important;
     -webkit-text-fill-color: var(--text) !important;
     border: 1px solid var(--border) !important;
     transition: background-color 5000s ease-in-out 0s;
@@ -121,7 +121,21 @@ select.lang-switch:hover { border-color: var(--border-hover); }
 .url-input:focus {
     border-color: var(--accent) !important;
     box-shadow: 0 0 10px var(--accent-glow) !important;
-    background: rgba(0, 0, 0, 0.5) !important;
+    background: #141414 !important;
+}
+/* General autofill styles for other inputs/textareas to match dashboard inputs */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover, 
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
+    -webkit-text-fill-color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+    transition: background-color 5000s ease-in-out 0s;
 }
 .btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 .btn {
@@ -149,12 +163,12 @@ select.lang-switch:hover { border-color: var(--border-hover); }
     background: linear-gradient(135deg, var(--accent), var(--accent2));
     color: #ffffff;
     border: none;
-    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);
+    box-shadow: 0 4px 15px rgba(82, 118, 235, 0.25);
 }
 .btn-primary:hover {
     filter: brightness(1.1);
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.35);
+    box-shadow: 0 6px 20px rgba(82, 118, 235, 0.35);
 }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
@@ -203,7 +217,7 @@ select.lang-switch:hover { border-color: var(--border-hover); }
     border-color: rgba(255, 255, 255, 0.05);
 }
 .page-item.active {
-    background: rgba(6, 182, 212, 0.08);
+    background: rgba(82, 118, 235, 0.08);
     border-color: var(--accent);
     box-shadow: 0 0 10px var(--accent-glow);
 }
@@ -282,26 +296,26 @@ select.lang-switch:hover { border-color: var(--border-hover); }
 
 /* AI Panel */
 .ai-panel {
-    background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(139, 92, 246, 0.04) 100%);
-    border: 1px solid rgba(6, 182, 212, 0.25);
+    background: linear-gradient(135deg, rgba(82, 118, 235, 0.08) 0%, rgba(124, 92, 231, 0.04) 100%);
+    border: 1px solid rgba(82, 118, 235, 0.25);
     border-radius: 10px;
     padding: 12px;
     margin-bottom: 12px;
-    box-shadow: inset 0 0 15px rgba(6, 182, 212, 0.05);
+    box-shadow: inset 0 0 15px rgba(82, 118, 235, 0.05);
 }
 select {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2306b6d4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235276eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
     background-position: right 10px center !important;
     background-size: 13px !important;
     padding-right: 28px !important;
 }
 select option, select optgroup {
-    background-color: #0a0e17 !important;
-    color: #f1f5f9 !important;
+    background-color: #1e1e1e !important;
+    color: var(--text) !important;
     font-family: var(--font) !important;
     font-size: 13px;
 }
@@ -338,7 +352,7 @@ select option, select optgroup {
 
 /* WordPress Panel */
 .wp-panel {
-    background: rgba(15, 23, 42, 0.4);
+    background: rgba(38, 38, 38, 0.4);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 12px;
@@ -388,22 +402,22 @@ select option, select optgroup {
 }
 .tab-btn:hover { color: var(--text); background: rgba(255, 255, 255, 0.05); }
 .tab-btn.active {
-    background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(139, 92, 246, 0.08));
+    background: linear-gradient(135deg, rgba(82, 118, 235, 0.12), rgba(124, 92, 231, 0.08));
     color: var(--accent);
-    border: 1px solid rgba(6, 182, 212, 0.2);
+    border: 1px solid rgba(82, 118, 235, 0.2);
 }
 .tab-btn .tab-badge {
     position: absolute;
     top: -2px;
     right: -2px;
     background: var(--accent);
-    color: #030408;
+    color: #ffffff;
     font-size: 10px;
     font-weight: 800;
     border-radius: 10px;
     padding: 1px 6px;
     min-width: 18px;
-    box-shadow: 0 2px 8px rgba(6, 182, 212, 0.4);
+    box-shadow: 0 2px 8px rgba(82, 118, 235, 0.4);
 }
 
 /* Watcher Panel Styles */
@@ -422,7 +436,7 @@ select option, select optgroup {
 }
 .watch-card:hover {
     border-color: var(--border-hover);
-    box-shadow: 0 6px 24px rgba(6, 182, 212, 0.05);
+    box-shadow: 0 6px 24px rgba(82, 118, 235, 0.05);
 }
 .watch-card .watch-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
 .watch-card .watch-url { font-size: 14px; font-weight: 700; color: var(--accent); word-break: break-all; }
@@ -447,7 +461,7 @@ select option, select optgroup {
     background: rgba(0, 0, 0, 0.2);
     color: var(--text2);
 }
-.watch-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(6, 182, 212, 0.05); }
+.watch-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(82, 118, 235, 0.05); }
 .watch-btn.danger:hover { border-color: var(--red); color: var(--red); background: rgba(244, 63, 94, 0.05); }
 .watch-btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; }
 .watch-btn.primary:hover { filter: brightness(1.1); }
@@ -814,7 +828,7 @@ select option, select optgroup {
                 <div class="wp-input-group" style="grid-column: span 2">
                     <label class="wp-label" data-i18n="wp_indexing_label">Auto Indexing (Tùy chọn)</label>
                     <select id="m-wp-indexing-sa" class="wp-input indexing-sa-dropdown" style="padding: 10px; appearance: auto; cursor: pointer; color: #fff;" onchange="updateSAEmailNote()">
-                        <option style="background: #0f172a; color: #fff;" value="" data-email="">-- Không đẩy / Tắt --</option>
+                        <option style="background: #1e1e1e; color: #fff;" value="" data-email="">-- Không đẩy / Tắt --</option>
                     </select>
                     <div id="indexing-sa-note" style="display:none; font-size:11px; color:var(--text3); margin-top:8px; line-height: 1.5; background: rgba(34,211,238,0.05); border-left: 2px solid var(--accent); padding: 8px 12px; border-radius: 4px;" data-i18n="wp_indexing_note">
                         <b>⚠️ Cấp quyền Search Console:</b> Bạn cần thêm email dưới đây làm Chủ sở hữu để API hoạt động. Hãy copy:
@@ -1094,7 +1108,7 @@ async function renderDetailPane(index) {
 
     // --- HTML Lắp Ghép ---
     dc.innerHTML = `
-        <div class="back-to-list-btn" onclick="goBackToList()" style="display:none; align-items:center; gap:8px; margin-bottom:16px; color:var(--accent); cursor:pointer; font-weight:600; font-size:13px; width:fit-content; background:rgba(6,182,212,0.08); padding:8px 16px; border-radius:8px; border:1px solid rgba(6,182,212,0.2); transition:all 0.2s;">
+        <div class="back-to-list-btn" onclick="goBackToList()" style="display:none; align-items:center; gap:8px; margin-bottom:16px; color:var(--accent); cursor:pointer; font-weight:600; font-size:13px; width:fit-content; background:rgba(82,118,235,0.08); padding:8px 16px; border-radius:8px; border:1px solid rgba(82,118,235,0.2); transition:all 0.2s;">
             <span>←</span> <span data-i18n="back_to_list">Quay lại danh sách</span>
         </div>
 
@@ -2436,20 +2450,20 @@ async function fetchIndexingAccounts() {
         
         els.forEach(sel => {
             const currentVal = sel.value;
-            sel.innerHTML = `<option style="background: #0f172a; color: #fff;" value="">${locales['wp_indexing_off'] || '-- Không đẩy / Tắt --'}</option>`;
+            sel.innerHTML = `<option style="background: #1e1e1e; color: #fff;" value="">${locales['wp_indexing_off'] || '-- Không đẩy / Tắt --'}</option>`;
             if(indexingCreds.length === 0) {
                 // If no account, users can't select anything
                 const opt = document.createElement('option');
                 opt.value = "";
                 opt.disabled = true;
-                opt.style.cssText = "background: #0f172a; color: #fff;";
+                opt.style.cssText = "background: #1e1e1e; color: #fff;";
                 opt.textContent = locales['wp_indexing_no_sa'] || "-- Chưa có Service Account Indexing --";
                 sel.appendChild(opt);
             } else {
                 indexingCreds.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c.id;
-                    opt.style.cssText = "background: #0f172a; color: #fff;";
+                    opt.style.cssText = "background: #1e1e1e; color: #fff;";
                     opt.setAttribute('data-email', c.service_account_email || '');
                     opt.textContent = `🔍 ${c.name} (${c.service_account_email})`;
                     sel.appendChild(opt);
