@@ -206,6 +206,16 @@ class PageWatcher:
             self._save_watches()
         return bool(to_remove)
 
+    def update_watch(self, watch_id: str, **kwargs) -> Optional[WatchConfig]:
+        w = self._watches.get(watch_id)
+        if not w:
+            return None
+        for k, v in kwargs.items():
+            if hasattr(w, k) and v is not None:
+                setattr(w, k, v)
+        self._save_watches()
+        return w
+
     def pause_watch(self, watch_id: str) -> bool:
         w = self._watches.get(watch_id)
         if w:
@@ -383,6 +393,14 @@ class PageWatcher:
                         })
                         watch.stats["total_published"] = watch.stats.get("total_published", 0) + 1
                         watch.stats["last_published_url"] = pub_result.get("post_url", article_url)
+
+                        idx_res = pub_result.get("google_indexed")
+                        if idx_res is not None:
+                            status_icon = "✅" if idx_res else "❌"
+                            self._append_log(watch_id, {
+                                "type": "info",
+                                "message": f"Google Indexing API ({status_icon}): {pub_result.get('post_url', '')}"
+                            })
                     else:
                         result["errors"].append({
                             "url": article_url,
@@ -644,6 +662,10 @@ class PageWatcher:
                 publish_payload["category_id"] = watch.wp_category_id
             elif watch.wp_category_name:
                 publish_payload["category_name"] = watch.wp_category_name
+                
+            idx_cred = wp_site.get("google_indexing_cred_id")
+            if idx_cred:
+                publish_payload["google_indexing_cred_id"] = idx_cred
 
             publish_resp = await client.post(
                 f"{TUBECLI_BASE_URL}/api/v1/web_crawler/publish_wp",
@@ -660,7 +682,9 @@ class PageWatcher:
                         watch.wp_category_id = resolved_cat_id
                         self._save_watches()
 
-                    logger.info(f"✅ Published: {new_title} → {pub_data.get('post_url', '')}")
+                    indexed = pub_data.get("google_indexed")
+                    index_msg = f" | Indexed: {indexed}" if indexed is not None else ""
+                    logger.info(f"✅ Published: {new_title} → {pub_data.get('post_url', '')}{index_msg}")
                     return {
                         "success": True,
                         "title": new_title,
@@ -668,6 +692,7 @@ class PageWatcher:
                         "post_id": pub_data.get("post_id"),
                         "featured_media_id": pub_data.get("featured_media_id"),
                         "category_id": resolved_cat_id,
+                        "google_indexed": indexed,
                     }
                 return {"success": False, "error": pub_data.get("detail", "Publish failed")}
             else:

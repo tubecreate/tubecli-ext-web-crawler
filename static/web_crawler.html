@@ -8,135 +8,567 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-    --bg: #060810; --bg2: #0c0e18; --card: #10121e; --card2: #161829;
-    --border: #1e2030; --border-hover: #2d334e; --text: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
-    --accent: #22d3ee; --accent2: #06b6d4; --accent-glow: rgba(34,211,238,0.15);
-    --red: #f43f5e; --green: #22c55e;
-    --font: 'Inter', system-ui, sans-serif;
+    --bg: #060813;
+    --bg-glass: rgba(10, 14, 26, 0.8);
+    --card: rgba(16, 22, 42, 0.55);
+    --card-hover: rgba(24, 32, 60, 0.7);
+    --border: rgba(255, 255, 255, 0.05);
+    --border-hover: rgba(6, 182, 212, 0.3);
+    --text: #f1f5f9;
+    --text2: #cbd5e1;
+    --text3: #64748b;
+    --accent: #06b6d4;
+    --accent-glow: rgba(6, 182, 212, 0.15);
+    --accent2: #8b5cf6;
+    --accent2-glow: rgba(139, 92, 246, 0.15);
+    --red: #f43f5e;
+    --green: #10b981;
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
+    --radius: 12px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:var(--font); background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; overflow:hidden;} /* Khóa scroll body */
+body {
+    font-family: var(--font);
+    background: var(--bg);
+    background-image: radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.04) 0%, transparent 40%),
+                      radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.04) 0%, transparent 40%);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
 
-.header { flex-shrink:0; padding:16px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:16px; background:var(--bg2); justify-content:space-between; }
-.header-left { display:flex; align-items:center; gap:16px; }
-.header h1 { font-size:18px; font-weight:700; }
-.header h1 span { color:var(--accent); }
-.back-link { color:var(--text3); text-decoration:none; font-size:13px; }
-.back-link:hover { color:var(--accent); }
+.header {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    justify-content: space-between;
+    z-index: 10;
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+.header h1 { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.header h1 span {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.back-link { color: var(--text3); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+.back-link:hover { color: var(--accent); }
+		
+select.lang-switch {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 6px;
+    outline: none;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+select.lang-switch:hover { border-color: var(--border-hover); }
 
-select.lang-switch { background: var(--card2); color: var(--text); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; outline: none; font-size: 13px; }
-
-.main { flex: 1; padding:20px; display:flex; flex-direction:column; gap:16px; overflow:hidden;}
-.input-area { flex-shrink:0; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; }
-.url-input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:10px 14px; font-size:14px; font-family:var(--font); outline:none; transition:border 0.2s; }
-.url-input:focus { border-color:var(--accent); }
-.btn-row { display:flex; gap:10px; margin-top:12px; }
-.btn { padding:10px 24px; border-radius:8px; border:none; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font); transition:all 0.2s; }
-.btn-primary { background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#000; }
-.btn-primary:hover { filter:brightness(1.1); transform:translateY(-1px); }
-.btn-primary:disabled { opacity:0.5; cursor:not-allowed; }
+.main {
+    flex: 1;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow: hidden;
+}
+.input-area {
+    flex-shrink: 0;
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+.url-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px;
+    color: var(--text) !important;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: var(--font);
+    outline: none;
+    transition: all 0.2s;
+}
+.url-input::placeholder {
+    color: var(--text3) !important;
+    opacity: 0.8;
+}
+.url-input:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 10px var(--accent-glow) !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+}
+.btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all 0.2s;
+    background: var(--card);
+    color: var(--text2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.btn:hover {
+    border-color: var(--border-hover);
+    color: var(--text);
+    background: var(--card-hover);
+}
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);
+}
+.btn-primary:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.35);
+}
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
 /* Grid Master - Detail layout */
-.workspace-grid { flex: 1; display:none; grid-template-columns: 320px 1fr; gap: 16px; min-height: 0; overflow: hidden; }
+.workspace-grid {
+    flex: 1;
+    display: none;
+    grid-template-columns: 320px 1fr;
+    gap: 16px;
+    min-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
 
 /* Sidebar (Master) */
-.sidebar { background:var(--card); border:1px solid var(--border); border-radius:12px; display:flex; flex-direction:column; overflow:hidden; }
-.sidebar-header { padding:12px; border-bottom:1px solid var(--border); font-size:14px; font-weight:bold; color:var(--accent); }
-.pages-list { flex: 1; overflow-y:auto; padding:8px; }
-.page-item { padding:12px; border-radius:8px; margin-bottom:8px; background:var(--bg2); border:1px solid transparent; cursor:pointer; transition:all 0.2s; }
-.page-item:hover { background:var(--border); }
-.page-item.active { background:rgba(34,211,238,0.1); border-color:var(--accent); }
-.page-title { font-size:14px; font-weight:600; margin-bottom:4px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-.page-url { font-size:11px; color:var(--text3); word-break:break-all; }
+.sidebar {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.sidebar-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+}
+.pages-list { flex: 1; overflow-y: auto; padding: 10px; }
+.page-item {
+    padding: 12px 14px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.page-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+.page-item.active {
+    background: rgba(6, 182, 212, 0.08);
+    border-color: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+.page-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.page-url { font-size: 11px; color: var(--text3); word-break: break-all; }
 
 /* Workspace (Detail) */
-.detail-pane { background:var(--card); border:1px solid var(--border); border-radius:12px; display:flex; flex-direction:column; overflow:hidden;}
-.detail-content { flex: 1; overflow-y:auto; padding:20px; }
+.detail-pane {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.detail-content { flex: 1; overflow-y: auto; padding: 12px 16px; }
 
 /* Form Edit Textarea */
-.edit-title-input { width:100%; background:transparent; border:none; border-bottom:1px solid var(--border); color:var(--accent); font-size:18px; font-weight:bold; padding:8px 0; outline:none; margin-bottom:16px; font-family:var(--font);}
-.edit-content-input { width:100%;  min-height:300px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); padding:16px; font-size:14px; line-height:1.6; font-family:var(--font); outline:none; resize:vertical; margin-bottom:20px;}
+.edit-title-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid var(--border);
+    color: var(--accent);
+    font-size: 16px;
+    font-weight: 700;
+    padding: 4px 0;
+    outline: none;
+    margin-bottom: 8px;
+    font-family: var(--font);
+    transition: border-color 0.2s;
+}
+.edit-title-input:focus { border-color: var(--accent); }
+.edit-content-input {
+    width: 100%;
+    min-height: 240px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 12px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    font-family: var(--font);
+    outline: none;
+    resize: vertical;
+    margin-bottom: 10px;
+    transition: all 0.2s;
+}
+.edit-content-input:focus { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
 
-.section-label { font-size:13px; color:var(--text2); text-transform:uppercase; font-weight:bold; margin-bottom:12px; letter-spacing:0.5px;}
+.section-label {
+    font-size: 11.5px;
+    color: var(--text3);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+}
 
 /* Custom Scrollbar */
-::-webkit-scrollbar { width:8px; }
-::-webkit-scrollbar-track { background:transparent; }
-::-webkit-scrollbar-thumb { background:var(--border-hover); border-radius:4px; }
-::-webkit-scrollbar-thumb:hover { background:var(--text3); }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
 
-.toast-container { position:fixed; top:20px; right:20px; z-index:9999; }
-.toast { padding:10px 20px; border-radius:8px; font-size:13px; margin-bottom:8px; animation:slideIn 0.3s ease; }
-.toast.success { background:#065f46; color:#6ee7b7; }
-.toast.error { background:#7f1d1d; color:#fca5a5; }
-@keyframes slideIn { from { transform:translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
-.spinner { display:inline-block; width:16px; height:16px; border:2px solid var(--text3); border-top-color:var(--accent); border-radius:50%; animation:spin 0.6s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+.toast { padding: 12px 24px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); backdrop-filter: blur(10px); }
+.toast.success { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.2); }
+.toast.error { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.2); }
+@keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* AI Panel */
-.ai-panel { background: rgba(34,211,238,0.05); border: 1px solid var(--accent); border-radius: 8px; padding: 16px; margin-bottom: 20px; }
-.ai-select { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 6px; font-size: 13px; margin-bottom: 12px; outline: none; }
-.ai-textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 6px; font-size: 13px; outline: none; resize: vertical; min-height: 60px; margin-bottom: 12px; font-family: var(--font);}
+.ai-panel {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.08) 0%, rgba(139, 92, 246, 0.04) 100%);
+    border: 1px solid rgba(6, 182, 212, 0.25);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: inset 0 0 15px rgba(6, 182, 212, 0.05);
+}
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2306b6d4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 13px !important;
+    padding-right: 28px !important;
+}
+select option, select optgroup {
+    background-color: #0a0e17 !important;
+    color: #f1f5f9 !important;
+    font-family: var(--font) !important;
+    font-size: 13px;
+}
+.ai-select {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    margin-bottom: 8px;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.ai-select:focus { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+.ai-textarea {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    outline: none;
+    resize: vertical;
+    min-height: 54px;
+    margin-bottom: 8px;
+    font-family: var(--font);
+    transition: all 0.2s;
+}
+.ai-textarea:focus { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
 
 /* WordPress Panel */
-.wp-panel { background: #0f172a; border: 1px solid #1e293b; border-radius: 8px; padding: 16px; margin-top: 20px;}
-.wp-input-group { margin-bottom: 12px;}
-.wp-label { display:block; font-size:12px; color:var(--text2); margin-bottom:4px;}
-.wp-input { width: 100%; background: var(--bg); border: 1px solid #1e293b; color: var(--text); padding: 8px; border-radius: 6px; font-size: 13px; outline: none;}
+.wp-panel {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-top: 12px;
+}
+.wp-input-group { margin-bottom: 10px; }
+.wp-label { display: block; font-size: 12px; color: var(--text3); margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.wp-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    outline: none;
+    transition: all 0.2s;
+}
+.wp-input:focus { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
 
 /* Tab Navigation */
-.tab-nav { display:flex; gap:4px; flex-shrink:0; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:4px; margin-bottom:0; }
-.tab-btn { padding:10px 24px; border-radius:8px; border:none; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font); transition:all 0.2s; background:transparent; color:var(--text3); position:relative; }
-.tab-btn:hover { color:var(--text); background:rgba(255,255,255,0.05); }
-.tab-btn.active { background:linear-gradient(135deg, rgba(34,211,238,0.15), rgba(6,182,212,0.1)); color:var(--accent); }
-.tab-btn .tab-badge { position:absolute; top:4px; right:8px; background:var(--accent); color:#000; font-size:10px; font-weight:700; border-radius:10px; padding:1px 6px; min-width:18px; }
+.tab-nav {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 3px;
+    margin-bottom: 2px;
+}
+.tab-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all 0.2s;
+    background: transparent;
+    color: var(--text3);
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.tab-btn:hover { color: var(--text); background: rgba(255, 255, 255, 0.05); }
+.tab-btn.active {
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(139, 92, 246, 0.08));
+    color: var(--accent);
+    border: 1px solid rgba(6, 182, 212, 0.2);
+}
+.tab-btn .tab-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background: var(--accent);
+    color: #030408;
+    font-size: 10px;
+    font-weight: 800;
+    border-radius: 10px;
+    padding: 1px 6px;
+    min-width: 18px;
+    box-shadow: 0 2px 8px rgba(6, 182, 212, 0.4);
+}
 
 /* Watcher Panel Styles */
-.watcher-panel { flex:1; display:none; flex-direction:column; gap:16px; overflow:hidden; }
-.watcher-panel.visible { display:flex; }
+.watcher-panel { flex: 1; display: none; flex-direction: column; gap: 16px; overflow: hidden; }
+.watcher-panel.visible { display: flex; }
 
-.watch-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; transition:all 0.2s; }
-.watch-card:hover { border-color:var(--border-hover); }
-.watch-card .watch-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
-.watch-card .watch-url { font-size:14px; font-weight:600; color:var(--accent); word-break:break-all; }
-.watch-card .watch-meta { display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--text2); margin-bottom:8px; }
-.watch-card .watch-meta span { display:flex; align-items:center; gap:4px; }
-.watch-card .watch-actions { display:flex; gap:8px; flex-shrink:0; }
+.watch-card {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+.watch-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: 0 6px 24px rgba(6, 182, 212, 0.05);
+}
+.watch-card .watch-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+.watch-card .watch-url { font-size: 14px; font-weight: 700; color: var(--accent); word-break: break-all; }
+.watch-card .watch-meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--text2); margin-bottom: 10px; opacity: 0.85; }
+.watch-card .watch-meta span { display: flex; align-items: center; gap: 6px; }
+.watch-card .watch-actions { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
 
-.watch-status { display:inline-block; padding:2px 10px; border-radius:10px; font-size:11px; font-weight:600; }
-.watch-status.active { background:rgba(34,197,94,0.15); color:var(--green); }
-.watch-status.paused { background:rgba(234,179,8,0.15); color:#eab308; }
-.watch-status.error { background:rgba(244,63,94,0.15); color:var(--red); }
+.watch-status { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.watch-status.active { background: rgba(16, 185, 129, 0.12); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.2); }
+.watch-status.paused { background: rgba(234, 179, 8, 0.12); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.2); }
+.watch-status.error { background: rgba(244, 63, 94, 0.12); color: var(--red); border: 1px solid rgba(244, 63, 94, 0.2); }
 
-.watch-btn { padding:5px 12px; border-radius:6px; border:1px solid var(--border); font-size:11px; font-weight:500; cursor:pointer; font-family:var(--font); transition:all 0.15s; background:var(--bg); color:var(--text2); }
-.watch-btn:hover { border-color:var(--accent); color:var(--accent); }
-.watch-btn.danger:hover { border-color:var(--red); color:var(--red); }
-.watch-btn.primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#000; border:none; }
-.watch-btn.primary:hover { filter:brightness(1.1); }
+.watch-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all 0.15s;
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--text2);
+}
+.watch-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(6, 182, 212, 0.05); }
+.watch-btn.danger:hover { border-color: var(--red); color: var(--red); background: rgba(244, 63, 94, 0.05); }
+.watch-btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; }
+.watch-btn.primary:hover { filter: brightness(1.1); }
 
-.watch-form { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; flex-shrink:0; }
-.watch-form .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
-.watch-form .form-full { grid-column:1/-1; }
-.watch-form label { display:block; font-size:12px; color:var(--text2); margin-bottom:4px; font-weight:500; }
-.watch-form input, .watch-form select { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); padding:8px 12px; font-size:13px; font-family:var(--font); outline:none; transition:border 0.2s; }
-.watch-form input:focus, .watch-form select:focus { border-color:var(--accent); }
+.watch-form {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.15);
+}
+.watch-form .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.watch-form .form-full { grid-column: 1 / -1; }
+.watch-form label { display: block; font-size: 12px; color: var(--text3); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; }
+.watch-form input, .watch-form select {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: var(--font);
+    outline: none;
+    transition: all 0.2s;
+}
+.watch-form input:focus, .watch-form select:focus { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
 
-.watcher-list { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:12px; padding-right:4px; }
-.watcher-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; text-align:center; color:var(--text3); }
-.watcher-empty .icon { font-size:48px; margin-bottom:16px; }
+.watcher-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 4px; }
+.watcher-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; color: var(--text3); }
+.watcher-empty .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
 
 /* Log panel */
-.log-panel { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; margin-top:8px; max-height:200px; overflow-y:auto; }
-.log-entry { font-size:12px; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.03); display:flex; gap:8px; }
-.log-entry .log-time { color:var(--text3); flex-shrink:0; }
-.log-entry .log-msg { color:var(--text2); }
+.log-panel { background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-top: 8px; max-height: 200px; overflow-y: auto; }
+.log-entry { font-size: 12px; padding: 6px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.02); display: flex; gap: 8px; }
+.log-entry:last-child { border-bottom: none; }
+.log-entry .log-time { color: var(--text3); flex-shrink: 0; font-family: monospace; }
+.log-entry .log-msg { color: var(--text2); }
+
+/* --- RESPONSIVE MASTER-DETAIL TOGGLE RULES --- */
+@media (max-width: 800px) {
+    .workspace-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .workspace-grid .sidebar {
+        display: flex;
+    }
+    .workspace-grid .detail-pane {
+        display: none;
+    }
+    /* When detail pane is active */
+    .workspace-grid.show-detail .sidebar {
+        display: none !important;
+    }
+    .workspace-grid.show-detail .detail-pane {
+        display: flex !important;
+    }
+    .back-to-list-btn {
+        display: inline-flex !important;
+    }
+    
+    .watch-form .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.exclude-btn {
+    position: absolute;
+    top: 12px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: var(--red);
+    opacity: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    padding: 4px;
+    border-radius: 4px;
+    z-index: 5;
+}
+.page-item:hover .exclude-btn {
+    opacity: 0.6;
+}
+.exclude-btn:hover {
+    opacity: 1 !important;
+    transform: scale(1.2);
+    background: rgba(244, 63, 94, 0.15);
+}
+
+/* --- DETAIL LAYOUT SIDE-BY-SIDE SIDEBAR --- */
+.detail-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+.detail-left {
+    flex: 7;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.detail-right {
+    flex: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+    position: sticky;
+    top: 0;
+}
+@media (max-width: 1100px) {
+    .detail-layout {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .detail-right {
+        position: static;
+    }
+}
 </style>
 </head>
 <body>
 
 <div class="header">
     <div class="header-left">
-        <a href="/dashboard" class="back-link">← Dashboard</a>
+        <a href="/dashboard#/dashboard" target="_top" class="back-link">← Dashboard</a>
         <h1 data-i18n="extension_name">🕸️ <span>Web Crawler AI Editor</span></h1>
     </div>
     <select class="lang-switch" onchange="changeLang(this.value)" id="langSelect">
@@ -149,69 +581,69 @@ select.lang-switch { background: var(--card2); color: var(--text); border: 1px s
 <div class="main">
     <!-- Tab Navigation -->
     <div class="tab-nav" id="tab-nav">
-        <button class="tab-btn active" onclick="switchTab('crawler')" id="tab-crawler">🕸️ Cào Dữ Liệu</button>
-        <button class="tab-btn" onclick="switchTab('watcher')" id="tab-watcher">📡 Theo Dõi Trang <span class="tab-badge" id="watch-count-badge" style="display:none">0</span></button>
+        <button class="tab-btn active" onclick="switchTab('crawler')" id="tab-crawler" data-i18n="tab_crawler">🕸️ Cào Dữ Liệu</button>
+        <button class="tab-btn" onclick="switchTab('watcher')" id="tab-watcher"><span data-i18n="tab_watcher">📡 Theo Dõi Trang</span> <span class="tab-badge" id="watch-count-badge" style="display:none">0</span></button>
+        <button class="tab-btn" onclick="switchTab('youtube')" id="tab-youtube"><span data-i18n="tab_youtube">▶️ Theo Dõi YouTube</span> <span class="tab-badge" id="yt-watch-count-badge" style="display:none">0</span></button>
     </div>
-    <div class="input-area" id="input-area">
-        <input type="text" id="url-input" class="url-input" placeholder="Nhập URL bài báo hoặc Categories để cào..." data-i18n-attr="url_placeholder">
-        
-        <div style="display: flex; gap: 16px; margin-top: 16px; align-items: center;">
-            <select id="max-depth" class="url-input" style="width: auto; padding: 6px 10px; margin: 0; font-size: 13px;">
+    <div class="input-area" id="input-area" style="padding: 10px 14px;">
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <input type="text" id="url-input" class="url-input" style="flex: 1; min-width: 250px; padding: 8px 12px; height: 36px; margin: 0;" placeholder="Nhập URL bài báo hoặc Categories để cào..." data-i18n-attr="url_placeholder">
+            
+            <select id="max-depth" class="url-input" style="width: auto; padding: 0 10px; margin: 0; font-size: 13px; height: 36px;">
                 <option value="0" data-i18n="depth_0">Độ sâu 0 (Chỉ trang đích)</option>
                 <option value="1" data-i18n="depth_1">Độ sâu 1 (Xuyên 1 tầng link con)</option>
                 <option value="2" data-i18n="depth_2">Độ sâu 2 (Cảnh báo: Rất Chậm!)</option>
             </select>
             
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text2); font-size: 13px;">
-                <input type="checkbox" id="save-file" style="accent-color: var(--accent); transform: scale(1.1);">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text2); font-size: 12px; white-space: nowrap; user-select: none; margin: 0;">
+                <input type="checkbox" id="save-file" style="accent-color: var(--accent); transform: scale(1.05);">
                 <span data-i18n="save_server">Lưu JSON (Server)</span>
             </label>
             
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text2); font-size: 13px;">
-                <input type="checkbox" id="download-images" checked style="accent-color: var(--accent); transform: scale(1.1);">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text2); font-size: 12px; white-space: nowrap; user-select: none; margin: 0;">
+                <input type="checkbox" id="download-images" checked style="accent-color: var(--accent); transform: scale(1.05);">
                 <span data-i18n="download_images">Tải tất cả ảnh vật lý</span>
             </label>
-        </div>
-
-        <div class="btn-row">
-            <button class="btn btn-primary" id="btn-scrape" onclick="scrapeUrl()">
+            
+            <button class="btn btn-primary" id="btn-scrape" onclick="scrapeUrl()" style="padding: 0 20px; height: 36px; font-size: 13px; font-weight: 600; white-space: nowrap; margin: 0;">
                 <span data-i18n="scrape_button">Bắt đầu Thu thập</span>
             </button>
-            <span id="save-path-area" style="display:none; color:var(--green); font-size:13px; align-self:center; margin-left:10px;"></span>
+            
+            <span id="save-path-area" style="display:none; color:var(--green); font-size:12px; font-weight:500; align-self:center; margin-left:10px;"></span>
         </div>
     </div>
 
     <!-- Welcome Panel (Default view) -->
     <div id="welcome-panel" style="flex:1; background:var(--card); border:1px solid var(--border); border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px; text-align:center;">
         <div style="font-size:48px; margin-bottom:16px;">🚀</div>
-        <h2 style="font-size:22px; color:var(--text); margin-bottom:12px;">Hệ thống Cào Tin & Xuất Bản Tự Động</h2>
-        <p style="color:var(--text2); max-width:600px; line-height:1.6; margin-bottom:30px; font-size:14px;">
+        <h2 style="font-size:22px; color:var(--text); margin-bottom:12px;" data-i18n="welcome_title">Hệ thống Cào Tin & Xuất Bản Tự Động</h2>
+        <p style="color:var(--text2); max-width:600px; line-height:1.6; margin-bottom:30px; font-size:14px;" data-i18n="welcome_desc">
             Nhập đường dẫn trang web phía trên để bắt đầu. Hệ thống sẽ giúp bạn bóc tách bài báo, <b style="color:var(--accent);">tẩy trắng và viết lại nội dung bằng AI</b>, sau đó hỗ trợ <b style="color:var(--green);">đăng tải trực tiếp (Publish) lên hàng loạt Website WordPress</b> mà không cần thao tác tải ảnh thủ công.
         </p>
         
         <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin-bottom:30px;">
             <div style="background:var(--bg); border:1px solid var(--border); padding:16px; border-radius:8px; width:180px;">
                 <div style="font-size:24px; margin-bottom:8px;">1️⃣</div>
-                <div style="font-weight:600; font-size:13px; color:var(--text); margin-bottom:4px;">Cào Dữ Liệu</div>
-                <div style="font-size:11px; color:var(--text3);">Bóc tách Text & Ảnh</div>
+                <div style="font-weight:600; font-size:13px; color:var(--text); margin-bottom:4px;" data-i18n="step1_title">Cào Dữ Liệu</div>
+                <div style="font-size:11px; color:var(--text3);" data-i18n="step1_desc">Bóc tách Text & Ảnh</div>
             </div>
             <div style="background:var(--bg); border:1px solid var(--border); padding:16px; border-radius:8px; width:180px;">
                 <div style="font-size:24px; margin-bottom:8px;">2️⃣</div>
-                <div style="font-weight:600; font-size:13px; color:var(--text); margin-bottom:4px;">AI Can Thiệp</div>
-                <div style="font-size:11px; color:var(--text3);">Dịch, Rewrite, Lọc Markdown</div>
+                <div style="font-weight:600; font-size:13px; color:var(--text); margin-bottom:4px;" data-i18n="step2_title">AI Can Thiệp</div>
+                <div style="font-size:11px; color:var(--text3);" data-i18n="step2_desc">Dịch, Rewrite, Lọc Markdown</div>
             </div>
             <div style="background:var(--bg); border:1px solid var(--border); padding:16px; border-radius:8px; width:180px;">
                 <div style="font-size:24px; margin-bottom:8px;">3️⃣</div>
-                <div style="font-weight:600; font-size:13px; color:var(--text); margin-bottom:4px;">Bắn Lên WP</div>
-                <div style="font-size:11px; color:var(--text3);">Tự bọc thẻ img và đẩy API</div>
+                <div style="font-weight:600; font-size:13px; color:var(--text); margin-bottom:4px;" data-i18n="step3_title">Bắn Lên WP</div>
+                <div style="font-size:11px; color:var(--text3);" data-i18n="step3_desc">Tự bọc thẻ img và đẩy API</div>
             </div>
         </div>
         
         <div>
-            <button class="btn" onclick="openWpManager()" style="background:transparent; border:1px solid var(--accent); color:var(--accent); font-size:14px; padding:12px 24px;">
+            <button class="btn" onclick="openWpManager()" style="background:transparent; border:1px solid var(--accent); color:var(--accent); font-size:14px; padding:12px 24px;" data-i18n="btn_config_wp">
                 ⚙️ Cấu hình sẵn Website WordPress đích
             </button>
-            <div style="font-size:12px; color:var(--text3); margin-top:12px;">(Bạn có thể thiết lập trước các Website vệ tinh tại đây)</div>
+            <div style="font-size:12px; color:var(--text3); margin-top:12px;" data-i18n="desc_config_wp">(Bạn có thể thiết lập trước các Website vệ tinh tại đây)</div>
         </div>
     </div>
 
@@ -274,13 +706,75 @@ select.lang-switch { background: var(--card2); color: var(--text); border: 1px s
             </div>
         </div>
     </div>
+
+    <!-- ═══ YOUTUBE WATCHER PANEL ═══ -->
+    <div class="watcher-panel" id="youtube-panel">
+        <!-- Add YouTube Watch Form -->
+        <div class="watch-form" id="yt-add-form">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <h3 style="font-size:15px; color:#ff0000;">▶️ Theo Dõi Kênh YouTube Mới</h3>
+            </div>
+            <!-- Channel URL + Resolve -->
+            <div style="margin-bottom:12px;">
+                <label style="display:block; font-size:12px; color:var(--text2); margin-bottom:4px; font-weight:500;">URL Kênh YouTube</label>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="yt-channel-url" placeholder="https://youtube.com/@channelname" style="flex:1; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); padding:8px 12px; font-size:13px; font-family:var(--font); outline:none;" />
+                    <button class="watch-btn primary" onclick="resolveYtChannel()" id="btn-resolve-yt" style="padding:8px 16px; white-space:nowrap;">🔍 Kiểm tra</button>
+                </div>
+                <!-- Channel Preview -->
+                <div id="yt-channel-preview" style="display:none; margin-top:10px; padding:10px; background:var(--bg); border:1px solid #ff0000; border-radius:8px; align-items:center; gap:12px;">
+                    <img id="yt-preview-thumb" src="" style="width:48px; height:48px; border-radius:50%; object-fit:cover;" />
+                    <div>
+                        <div id="yt-preview-name" style="font-weight:600; color:var(--text); font-size:14px;"></div>
+                        <div id="yt-preview-id" style="font-size:11px; color:var(--text3);"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div>
+                    <label>Kiểm tra mỗi (giờ)</label>
+                    <input type="number" id="yt-interval" value="6" min="1" max="168" />
+                </div>
+                <div>
+                    <label>Tối đa video/lần check</label>
+                    <input type="number" id="yt-max-videos" value="3" min="1" max="10" />
+                </div>
+                <div>
+                    <label>Website đích (WordPress)</label>
+                    <select id="yt-target-site">
+                        <option value="">-- Chọn website --</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Lệnh xử lý AI</label>
+                    <input type="text" id="yt-instruction" value="Viết lại thành bài báo hoàn chỉnh" />
+                </div>
+                <div class="form-full" style="display:flex; align-items:center; gap:12px;">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
+                        <input type="checkbox" id="yt-embed-video" checked style="accent-color:#ff0000; transform:scale(1.2);">
+                        <span style="font-size:13px; color:var(--text2);">Chèn video gốc vào đầu bài viết WordPress</span>
+                    </label>
+                </div>
+            </div>
+            <button class="watch-btn primary" onclick="createYtWatch()" id="btn-create-yt" style="padding:10px 24px; font-size:13px; background:linear-gradient(135deg,#ff0000,#cc0000);">▶️ Bắt đầu Theo dõi Kênh</button>
+        </div>
+
+        <!-- YouTube Watch List -->
+        <div class="watcher-list" id="yt-watcher-list">
+            <div class="watcher-empty" id="yt-watcher-empty">
+                <div class="icon">▶️</div>
+                <div style="font-size:16px; font-weight:600; margin-bottom:8px;">Chưa theo dõi kênh YouTube nào</div>
+                <div style="font-size:13px;">Nhập URL kênh ở trên để hệ thống tự động phát hiện video mới, tách transcript và đăng bài lên WordPress</div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal WP Manager -->
 <div id="wp-manager-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:999; align-items:center; justify-content:center;">
     <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; width:500px; max-width:90%; padding:20px; display:flex; flex-direction:column; max-height:90vh; position:relative;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-            <h3 style="color:var(--accent); font-size:16px;">Quản lý WordPress Sites</h3>
+            <h3 style="color:var(--accent); font-size:16px;" data-i18n="wp_manage_title">Quản lý WordPress Sites</h3>
             <button onclick="closeWpManager()" style="background:none; border:none; color:var(--text3); font-size:20px; cursor:pointer;" title="Đóng">&times;</button>
         </div>
         
@@ -289,34 +783,73 @@ select.lang-switch { background: var(--card2); color: var(--text); border: 1px s
         </div>
 
         <div style="background:var(--bg); padding:16px; border-radius:8px; border:1px solid var(--border); overflow-y:auto;">
-            <h4 style="margin-bottom:12px; font-size:13px; color:var(--accent2);" id="wp-form-title">Thêm Website Mới</h4>
+            <h4 style="margin-bottom:12px; font-size:13px; color:var(--accent2);" id="wp-form-title" data-i18n="wp_add_new">Thêm Website Mới</h4>
             <input type="hidden" id="wp-edit-id">
             <div class="wp-input-group">
-                <label class="wp-label">Tên gợi nhớ (VD: Blog Công Nghệ)</label>
-                <input type="text" id="m-wp-name" class="wp-input" placeholder="Tên để dễ nhớ...">
+                <label class="wp-label" data-i18n="wp_name_label">Tên gợi nhớ (VD: Blog Công Nghệ)</label>
+                <input type="text" id="m-wp-name" class="wp-input" placeholder="Tên để dễ nhớ..." data-i18n-attr="wp_name_placeholder">
             </div>
             <div class="wp-input-group">
-                <label class="wp-label">URL Trang Web</label>
-                <input type="text" id="m-wp-url" class="wp-input" placeholder="https://...">
+                <label class="wp-label" data-i18n="wp_url_label">URL Trang Web</label>
+                <input type="text" id="m-wp-url" class="wp-input" placeholder="https://..." data-i18n-attr="wp_url_placeholder">
             </div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
                 <div class="wp-input-group">
-                    <label class="wp-label">Tài khoản (Username)</label>
+                    <label class="wp-label" data-i18n="wp_user_label">Tài khoản (Username)</label>
                     <input type="text" id="m-wp-user" class="wp-input">
                 </div>
                 <div class="wp-input-group">
-                    <label class="wp-label">Mật khẩu Ứng dụng</label>
+                    <label class="wp-label" data-i18n="wp_pass_label">Mật khẩu Ứng dụng</label>
                     <input type="password" id="m-wp-pass" class="wp-input">
+                </div>
+                <div class="wp-input-group" style="grid-column: span 2">
+                    <label class="wp-label" data-i18n="wp_indexing_label">Auto Indexing (Tùy chọn)</label>
+                    <select id="m-wp-indexing-sa" class="wp-input indexing-sa-dropdown" style="padding: 10px; appearance: auto; cursor: pointer; color: #fff;" onchange="updateSAEmailNote()">
+                        <option style="background: #0f172a; color: #fff;" value="" data-email="">-- Không đẩy / Tắt --</option>
+                    </select>
+                    <div id="indexing-sa-note" style="display:none; font-size:11px; color:var(--text3); margin-top:8px; line-height: 1.5; background: rgba(34,211,238,0.05); border-left: 2px solid var(--accent); padding: 8px 12px; border-radius: 4px;" data-i18n="wp_indexing_note">
+                        <b>⚠️ Cấp quyền Search Console:</b> Bạn cần thêm email dưới đây làm Chủ sở hữu để API hoạt động. Hãy copy:
+                        <div style="margin: 6px 0; display:flex; align-items:center;">
+                            <code id="sa-email-display" style="background:rgba(0,0,0,0.5); color:var(--accent); padding:4px 8px; border-radius:4px; font-size:11px; user-select:all; border:1px solid rgba(255,255,255,0.1);"></code>
+                        </div>
+                        Vào <a href="https://search.google.com/search-console" target="_blank" style="color:var(--accent); text-decoration:none;">Search Console</a> của web &gt; <b>Cài đặt &gt; Người dùng và phân quyền</b> &gt; Thêm người dùng &gt; Dán email &gt; Quyền: <b>Chủ sở hữu (Owner)</b>.
+                    </div>
                 </div>
             </div>
             <div style="display:flex; justify-content:space-between; margin-top:8px;">
-                <button class="btn" style="background:var(--border); font-size:11px; padding:6px 12px;" onclick="clearWpForm()">Nhập mới</button>
-                <button class="btn btn-primary" onclick="saveWpSite()" style="padding:6px 16px;">Lưu Thông Tin</button>
+                <button class="btn" style="background:var(--border); font-size:11px; padding:6px 12px;" onclick="clearWpForm()" data-i18n="btn_form_clear">Nhập mới</button>
+                <button class="btn btn-primary" onclick="saveWpSite()" style="padding:6px 16px;" data-i18n="btn_save_info">Lưu Thông Tin</button>
             </div>
         </div>
 
         <div style="text-align:right; margin-top:16px; flex-shrink:0;">
-            <button class="btn" style="background:var(--border);" onclick="closeWpManager()">Đóng</button>
+            <button class="btn" style="background:var(--border);" onclick="closeWpManager()" data-i18n="btn_close">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<div id="edit-watch-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9000; align-items:center; justify-content:center;">
+    <div style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; width:450px; max-width:90%;">
+        <div style="font-size:16px; font-weight:bold; color:var(--accent); margin-bottom:16px;" data-i18n="watch_edit_title">Sửa Cấu Hình</div>
+        <div class="wp-input-group">
+            <label class="wp-label" data-i18n="watch_interval_label">Kiểm tra mỗi (giờ)</label>
+            <input type="number" id="edit-w-interval" class="wp-input" min="1" max="168">
+        </div>
+        <div class="wp-input-group">
+            <label class="wp-label" id="edit-w-max-label" data-i18n="watch_max_label">Tối đa / lần check</label>
+            <input type="number" id="edit-w-max" class="wp-input" min="1" max="10">
+        </div>
+        <div class="wp-input-group">
+            <label class="wp-label" data-i18n="watch_target_label">Website đích</label>
+            <select id="edit-w-target" class="wp-input"></select>
+        </div>
+        <div class="wp-input-group">
+            <label class="wp-label" data-i18n="watch_prompt_label">Lệnh xử lý AI</label>
+            <input type="text" id="edit-w-inst" class="wp-input">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
+            <button class="btn" style="background:var(--border);" onclick="document.getElementById('edit-watch-modal').style.display='none'" data-i18n="btn_cancel">Hủy</button>
+            <button class="btn btn-primary" onclick="submitEditWatch()" data-i18n="btn_save_changes">Lưu Thay Đổi</button>
         </div>
     </div>
 </div>
@@ -330,9 +863,24 @@ let globalAiModels = null;
 let globalScrapedPages = [];
 let activePageIndex = -1;
 
+let _isLangInitialized = false;
 async function loadLocales() {
+    if (!_isLangInitialized) {
+        try {
+            const sr = await fetch('/api/v1/settings/language');
+            if (sr.ok) {
+                const data = await sr.json();
+                if (data && data.language) currentLang = data.language;
+            }
+        } catch(e) {}
+        _isLangInitialized = true;
+    }
+    
+    const sel = document.getElementById('langSelect');
+    if (sel) sel.value = currentLang;
+
     try {
-        const res = await fetch(`/api/v1/web_crawler/locales/${currentLang}`);
+        const res = await fetch(`/api/v1/web_crawler/locales/${currentLang}?t=` + new Date().getTime());
         locales = await res.json();
         applyTranslations();
     } catch (e) {
@@ -344,9 +892,9 @@ function applyTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (locales[key]) {
-            if(el.querySelector('span')) {
+            if(el.querySelector('span') && el.tagName === 'BUTTON') {
                 el.innerHTML = el.innerHTML.replace(/<span.*>.*<\/span>/, `<span>${locales[key]}</span>`);
-            } else { el.textContent = locales[key]; }
+            } else { el.innerHTML = locales[key]; }
         }
     });
     document.querySelectorAll('[data-i18n-attr]').forEach(el => {
@@ -354,15 +902,25 @@ function applyTranslations() {
         if (locales[key] && el.tagName === 'INPUT') { el.placeholder = locales[key]; }
     });
 }
-function changeLang(lang) { currentLang = lang; loadLocales(); }
+function changeLang(lang) { 
+    currentLang = lang; 
+    try {
+        fetch('/api/v1/settings/language', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ language: lang })
+        });
+    } catch(e) {}
+    loadLocales(); 
+}
 
 function toast(msg, type = 'success') {
     const c = document.getElementById('toast-container');
     const el = document.createElement('div');
     el.className = 'toast ' + type;
-    el.textContent = msg;
+    el.innerHTML = msg;
     c.appendChild(el);
-    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3000);
+    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 6000);
 }
 function escHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
@@ -381,7 +939,7 @@ async function scrapeUrl() {
     btn.innerHTML = '<span class="spinner"></span>';
 
     // Collapse input area visually slightly to give screen space
-    document.getElementById('input-area').style.padding = '12px 16px';
+    document.getElementById('input-area').style.padding = '8px 12px';
     const welcomePanel = document.getElementById('welcome-panel');
     if (welcomePanel) welcomePanel.style.display = 'none';
     
@@ -432,10 +990,12 @@ function renderMasterList() {
         const el = document.createElement('div');
         el.className = 'page-item';
         el.id = `item-list-${index}`;
+        el.style.position = 'relative';
         const shortTitle = data.title || data.url;
         el.innerHTML = `
-            <div class="page-title">${escHtml(shortTitle)}</div>
-            <div class="page-url">${escHtml(data.url.split('?')[0])}</div>
+            <div class="page-title" style="padding-right: 24px;">${escHtml(shortTitle)}</div>
+            <div class="page-url" style="padding-right: 24px;">${escHtml(data.url.split('?')[0])}</div>
+            <button class="exclude-btn" onclick="excludeArticle(${index}, event)" title="Loại bỏ bài viết">🗑️</button>
         `;
         el.onclick = () => selectPage(index);
         container.appendChild(el);
@@ -444,6 +1004,28 @@ function renderMasterList() {
     if (globalScrapedPages.length > 0) {
         selectPage(0);
     }
+}
+
+function excludeArticle(index, event) {
+    if (event) event.stopPropagation();
+    
+    if (!confirm('Bạn có chắc chắn muốn loại bỏ bài viết này khỏi danh sách?')) return;
+    
+    globalScrapedPages.splice(index, 1);
+    
+    if (activePageIndex === index) {
+        activePageIndex = -1;
+        document.getElementById('detail-content').innerHTML = `
+            <div style="display:flex; justify-content:center; align-items:center; height:100%; color:var(--text3); font-style:italic;">
+                Chọn một bài viết ở cột trái để bắt đầu Biên tập & Đăng bài.
+            </div>
+        `;
+    } else if (activePageIndex > index) {
+        activePageIndex--;
+    }
+    
+    renderMasterList();
+    toast('Đã loại bỏ bài viết khỏi danh sách!', 'success');
 }
 
 function selectPage(index) {
@@ -461,7 +1043,15 @@ function selectPage(index) {
     const newEl = document.getElementById(`item-list-${index}`);
     if(newEl) newEl.classList.add('active');
     
+    const grid = document.getElementById('workspace-grid');
+    if (grid) grid.classList.add('show-detail');
+    
     renderDetailPane(index);
+}
+
+function goBackToList() {
+    const grid = document.getElementById('workspace-grid');
+    if (grid) grid.classList.remove('show-detail');
 }
 
 function saveCurrentPageChanges() {
@@ -495,51 +1085,102 @@ async function renderDetailPane(index) {
 
     // --- HTML Lắp Ghép ---
     dc.innerHTML = `
-        <div style="margin-bottom:20px;">
-            <a href="${escHtml(data.url)}" target="_blank" style="color:var(--accent); font-size:12px; text-decoration:none;">🌍 Xem bài viết gốc</a>
-        </div>
-        
-        <div class="ai-panel">
-            <div class="section-label" style="color:var(--accent); display:flex; align-items:center; gap:8px;">✨ AI Trợ lý Biên tập</div>
-            <select class="ai-select" id="ai-model" onchange="localStorage.setItem('tc_ai_model', this.value)"><option value="">Đang tải mô hình...</option></select>
-            <textarea class="ai-textarea" id="ai-prompt" placeholder="Ví dụ: Dịch toàn bộ nội dung..." onchange="localStorage.setItem('tc_ai_prompt', this.value)" onkeyup="localStorage.setItem('tc_ai_prompt', this.value)">${escHtml(localStorage.getItem('tc_ai_prompt') || '')}</textarea>
-            <button class="btn btn-primary" id="btn-ai-run" onclick="runAiRewrite()" style="padding: 6px 16px;">Bắt đầu AI Xử lý</button>
-            <span id="ai-status" style="margin-left: 12px; font-size: 13px; color: var(--text3);"></span>
+        <div class="back-to-list-btn" onclick="goBackToList()" style="display:none; align-items:center; gap:8px; margin-bottom:16px; color:var(--accent); cursor:pointer; font-weight:600; font-size:13px; width:fit-content; background:rgba(6,182,212,0.08); padding:8px 16px; border-radius:8px; border:1px solid rgba(6,182,212,0.2); transition:all 0.2s;">
+            <span>←</span> <span data-i18n="back_to_list">Quay lại danh sách</span>
         </div>
 
-        <input type="text" id="txt-title" class="edit-title-input" value="${escHtml(data.title)}" placeholder="Tiêu đề bài viết">
-        <textarea id="txt-content" class="edit-content-input" placeholder="Nội dung trống...">${data.content ? escHtml(data.content) : ''}</textarea>
-        
-        ${imagesHtml}
-
-        <div class="wp-panel">
-            <div class="section-label" style="color:#fff; display:flex; justify-content:space-between; align-items:center;">
-                <span>🚀 Publish lên Website WordPress (API)</span>
-                <button onclick="openWpManager()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:12px; font-weight:bold;">⚙️ Quản lý Trang Web</button>
+        <div class="detail-layout">
+            <!-- COT TRAI: BIEN TAP NOI DUNG & ANH -->
+            <div class="detail-left">
+                <div style="margin-bottom:16px; display: flex; align-items: center; justify-content: space-between;">
+                    <a href="${escHtml(data.url)}" target="_blank" style="color:var(--accent); font-size:13px; text-decoration:none; font-weight:500;">🌍 Xem bài viết gốc (Original Post)</a>
+                </div>
+                
+                <div class="section-label">Tiêu đề bài viết (Title)</div>
+                <input type="text" id="txt-title" class="edit-title-input" value="${escHtml(data.title)}" placeholder="Tiêu đề bài viết">
+                
+                <div class="section-label">Nội dung bài viết (Content)</div>
+                <textarea id="txt-content" class="edit-content-input" placeholder="Nội dung trống...">${data.content ? escHtml(data.content) : ''}</textarea>
+                
+                ${imagesHtml}
             </div>
             
-            <div class="wp-input-group" style="margin-bottom: 20px;">
-                <label class="wp-label">Chọn Website đích</label>
-                <select id="wp-site-select" class="wp-input" style="width: 100%; border: 1px solid var(--border);">
-                    <option value="">-- Đang tải dữ liệu... --</option>
-                </select>
-            </div>
-            
-            <div style="display:flex; gap: 10px; margin-top: 16px;">
-                <button class="btn btn-primary" onclick="publishWp('publish')" style="background:var(--green); color:#fff;" id="btn-wp-publish">Bắn lên Live</button>
-                <button class="btn" onclick="publishWp('draft')" style="background:var(--border); color:#fff;" id="btn-wp-draft">Lưu tệp Nháp (Draft)</button>
+            <!-- COT PHAI: AI & PUBLISHING (STACKED STICKY PANEL) -->
+            <div class="detail-right">
+                <!-- AI Trợ lý Biên tập -->
+                <div class="ai-panel">
+                    <div class="section-label" style="color:var(--accent); display:flex; align-items:center; gap:8px; margin-bottom:14px;">✨ AI Trợ lý Biên tập</div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <label class="wp-label" style="margin-bottom: 6px; font-size:11px;">Nhà cung cấp (Provider)</label>
+                            <select class="ai-select" id="ai-provider" style="margin-bottom: 0;" onchange="onProviderChange(this.value)">
+                                <option value="">Đang tải...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="wp-label" style="margin-bottom: 6px; font-size:11px;">Mô hình (Model)</label>
+                            <select class="ai-select" id="ai-model" style="margin-bottom: 0;" onchange="onModelChange(this.value)">
+                                <option value="">Đang tải...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <label class="wp-label" style="margin-bottom: 6px; font-size:11px;">Yêu cầu xử lý (Prompt/Instruction)</label>
+                    <textarea class="ai-textarea" id="ai-prompt" placeholder="Ví dụ: Giúp tôi biên tập lại nội dung..." onchange="localStorage.setItem('tc_ai_prompt', this.value)" onkeyup="localStorage.setItem('tc_ai_prompt', this.value)">${escHtml(localStorage.getItem('tc_ai_prompt') || '')}</textarea>
+                    
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 4px;">
+                        <button class="btn btn-primary" id="btn-ai-run" onclick="runAiRewrite()" style="padding: 8px 16px;">Bắt đầu AI Xử lý</button>
+                        <button class="btn" id="btn-ai-test" onclick="testSelectedModel()" style="padding: 8px 16px; background: rgba(139, 92, 246, 0.1); color: var(--accent2); border: 1px solid rgba(139, 92, 246, 0.25);">🧪 Test Model</button>
+                        <span id="ai-status" style="font-size: 13px; color: var(--text3);"></span>
+                    </div>
+                </div>
+                
+                <!-- WordPress Publish Panel -->
+                <div class="wp-panel" style="margin-top: 0;">
+                    <div class="section-label" style="color:#fff; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                        <span>🚀 Xuất bản WordPress (Publish)</span>
+                        <button onclick="openWpManager()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:12px; font-weight:bold;">⚙️ Quản lý</button>
+                    </div>
+                    
+                    <div class="wp-input-group" style="margin-bottom: 12px;">
+                        <label class="wp-label" style="font-size:11px;">Chọn Website vệ tinh</label>
+                        <select id="wp-site-select" class="wp-input" style="width: 100%; border: 1px solid var(--border);" onchange="onWpSiteChange(this.value)">
+                            <option value="">-- Đang tải dữ liệu... --</option>
+                        </select>
+                    </div>
+                    
+                    <div class="wp-input-group" style="margin-bottom: 12px;">
+                        <label class="wp-label" style="font-size:11px;">Chọn Chuyên mục (Category)</label>
+                        <select id="wp-category-select" class="wp-input" style="width: 100%; border: 1px solid var(--border);" onchange="localStorage.setItem('tc_crawler_wp_category_id_' + document.getElementById('wp-site-select').value, this.value)">
+                            <option value="">-- Chọn Website trước --</option>
+                        </select>
+                    </div>
+                    
+                    <div style="display:flex; gap: 10px; margin-top: 16px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="publishWp('publish')" style="background:var(--green); color:#fff;" id="btn-wp-publish">Bắn lên Live</button>
+                        <button class="btn" onclick="publishWp('draft')" style="background:var(--border); color:#fff;" id="btn-wp-draft">Lưu Nháp (Draft)</button>
+                        <button class="btn" onclick="startAutoPilot()" style="background: linear-gradient(135deg, var(--accent2), #6d28d9); color:#fff; border: none; box-shadow: 0 4px 10px rgba(139, 92, 246, 0.25);" id="btn-autopilot">🤖 Auto Pilot</button>
+                    </div>
+                    <div id="wp-publish-status" style="margin-top: 12px; font-size: 13px; line-height: 1.5;"></div>
+                </div>
             </div>
         </div>
     `;
 
     await fetchAiModels();
     renderWpDropdown();
+    fetchIndexingAccounts();
+    
+    // Apply locales since we generated new DOM elements
+    applyTranslations();
 }
 
 // --- AI LOGIC ---
 async function fetchAiModels() {
-    const sel = document.getElementById('ai-model');
-    if(!sel) return;
+    const provSel = document.getElementById('ai-provider');
+    const modelSel = document.getElementById('ai-model');
+    if(!provSel || !modelSel) return;
     
     if (!globalAiModels) {
         try {
@@ -549,33 +1190,120 @@ async function fetchAiModels() {
         } catch(e) { globalAiModels = []; }
     }
     
-    sel.innerHTML = '';
-    globalAiModels.forEach(prov => {
-        const optGroup = document.createElement('optgroup');
-        optGroup.label = prov.name;
-        prov.models.forEach(m => {
-            const opt = document.createElement('option');
-            opt.value = prov.provider + '|' + m;
-            opt.textContent = m;
-            optGroup.appendChild(opt);
-        });
-        sel.appendChild(optGroup);
-    });
-    if (globalAiModels.length === 0) sel.innerHTML = '<option value="">Lỗi: Không tìm thấy Model AI</option>';
+    provSel.innerHTML = '';
+    if (globalAiModels.length === 0) {
+        provSel.innerHTML = '<option value="">Lỗi: Không tìm thấy Provider</option>';
+        modelSel.innerHTML = '<option value="">Lỗi: Không tìm thấy Model</option>';
+        return;
+    }
     
-    // Restore saved model selection
-    const savedModel = localStorage.getItem('tc_ai_model');
-    if (savedModel && Array.from(sel.options).some(o => o.value === savedModel)) {
-        sel.value = savedModel;
+    globalAiModels.forEach(prov => {
+        const opt = document.createElement('option');
+        opt.value = prov.provider;
+        opt.textContent = prov.name;
+        provSel.appendChild(opt);
+    });
+    
+    // Khôi phục lựa chọn provider & model đã lưu
+    let savedProvider = localStorage.getItem('tc_crawler_ai_provider');
+    let savedModel = localStorage.getItem('tc_crawler_ai_model');
+    
+    if (savedProvider && !globalAiModels.some(p => p.provider === savedProvider)) {
+        savedProvider = null;
+    }
+    
+    if (!savedProvider && globalAiModels.length > 0) {
+        savedProvider = globalAiModels[0].provider;
+    }
+    
+    provSel.value = savedProvider;
+    populateModelDropdown(savedProvider);
+    
+    if (savedModel && Array.from(modelSel.options).some(o => o.value === savedModel)) {
+        modelSel.value = savedModel;
+    } else if (modelSel.options.length > 0) {
+        localStorage.setItem('tc_crawler_ai_model', modelSel.value);
+    }
+}
+
+function populateModelDropdown(providerId) {
+    const modelSel = document.getElementById('ai-model');
+    if (!modelSel) return;
+    
+    modelSel.innerHTML = '';
+    const selectedProv = globalAiModels.find(p => p.provider === providerId);
+    if (selectedProv && selectedProv.models && selectedProv.models.length > 0) {
+        selectedProv.models.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.textContent = m;
+            modelSel.appendChild(opt);
+        });
+    } else {
+        modelSel.innerHTML = '<option value="">-- Không có model --</option>';
+    }
+}
+
+function onProviderChange(providerId) {
+    localStorage.setItem('tc_crawler_ai_provider', providerId);
+    populateModelDropdown(providerId);
+    if (document.getElementById('ai-model').options.length > 0) {
+        const firstModel = document.getElementById('ai-model').value;
+        localStorage.setItem('tc_crawler_ai_model', firstModel);
+    }
+}
+
+function onModelChange(modelName) {
+    localStorage.setItem('tc_crawler_ai_model', modelName);
+}
+
+async function testSelectedModel() {
+    const provider = document.getElementById('ai-provider').value;
+    const model = document.getElementById('ai-model').value;
+    if (!provider || !model) {
+        toast('Vui lòng chọn đầy đủ Provider và Model!', 'error');
+        return;
+    }
+    
+    const btn = document.getElementById('btn-ai-test');
+    const status = document.getElementById('ai-status');
+    const ogBtnText = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;margin-right:0"></span>';
+    status.innerHTML = 'Đang kiểm tra kết nối...';
+    status.style.color = 'var(--text3)';
+    
+    try {
+        const res = await fetch('/api/v1/web_crawler/test_model', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ provider, model })
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+            status.innerHTML = '<span style="color:var(--green)">✓ OK! Kết nối tốt.</span>';
+            toast(`Kết nối thành công tới ${model}!`, 'success');
+        } else {
+            status.innerHTML = `<span style="color:var(--red)">❌ Lỗi: ${escHtml(data.error)}</span>`;
+            toast(`Lỗi kết nối: ${data.error}`, 'error');
+        }
+    } catch (e) {
+        status.innerHTML = `<span style="color:var(--red)">❌ Lỗi kết nối.</span>`;
+        toast(`Lỗi: ${e.message}`, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = ogBtnText;
     }
 }
 
 async function runAiRewrite() {
     saveCurrentPageChanges(); // Bảo lưu text hiện có
-    const rawVal = document.getElementById('ai-model').value;
-    if (!rawVal) { toast('Chọn Mô hình AI trước!', 'error'); return; }
+    const provider = document.getElementById('ai-provider').value;
+    const model = document.getElementById('ai-model').value;
+    if (!provider || !model) { toast('Chọn Mô hình AI trước!', 'error'); return; }
     
-    const [provider, model] = rawVal.split('|');
     const instruction = document.getElementById('ai-prompt').value.trim();
     if (!instruction) { toast('Nhập lệnh (Instruction) cho AI!', 'error'); return; }
     
@@ -586,6 +1314,7 @@ async function runAiRewrite() {
     const status = document.getElementById('ai-status');
     btn.disabled = true;
     status.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;margin-right:6px"></span>AI đang làm việc...';
+    status.style.color = 'var(--text3)';
     
     try {
         const res = await fetch('/api/v1/web_crawler/rewrite', {
@@ -602,13 +1331,173 @@ async function runAiRewrite() {
             globalScrapedPages[activePageIndex].content = data.content;
             status.innerHTML = '<span style="color:var(--green)">✓ Đã biên tập thành công!</span>';
         } else {
-            status.textContent = '❌ Lỗi API từ nhà mạng.';
+            status.innerHTML = '<span style="color:var(--red)">❌ Lỗi xử lý từ AI.</span>';
             toast(data.detail || 'Lỗi', 'error');
         }
     } catch (e) {
-        status.textContent = '❌ Lỗi mất kết nối.';
+        status.innerHTML = '<span style="color:var(--red)">❌ Lỗi mất kết nối.</span>';
     }
     btn.disabled = false;
+}
+
+let autoPilotRunning = false;
+
+async function startAutoPilot() {
+    if (autoPilotRunning) {
+        autoPilotRunning = false;
+        const btn = document.getElementById('btn-autopilot');
+        if (btn) {
+            btn.innerHTML = '🤖 Auto Pilot';
+            btn.style.background = 'linear-gradient(135deg, var(--accent2), #6d28d9)';
+        }
+        toast('Đã dừng Auto Pilot!', 'warning');
+        return;
+    }
+    
+    // Thu thập tham số cấu hình
+    const provider = document.getElementById('ai-provider')?.value;
+    const model = document.getElementById('ai-model')?.value;
+    if (!provider || !model) { toast('Vui lòng chọn đầy đủ Provider & Model trước!', 'error'); return; }
+    
+    const instruction = document.getElementById('ai-prompt')?.value.trim();
+    if (!instruction) { toast('Vui lòng nhập Yêu cầu xử lý (Prompt) cho AI!', 'error'); return; }
+    
+    const wpSel = document.getElementById('wp-site-select')?.value;
+    if (!wpSel) { toast('Vui lòng cấu hình & chọn Website đích WordPress!', 'error'); return; }
+    
+    if (globalScrapedPages.length === 0) { toast('Danh sách bài viết trống!', 'error'); return; }
+    
+    if (!confirm(`🤖 Bắt đầu chế độ Tự Động (Auto Pilot)?\nHệ thống sẽ xử lý tuần tự ${globalScrapedPages.length} bài viết:\n  1. Gọi AI biên tập tự động.\n  2. Bắn bài viết trực tiếp lên WordPress.\n\nBạn có chắc chắn muốn tiếp tục?`)) return;
+    
+    autoPilotRunning = true;
+    const btn = document.getElementById('btn-autopilot');
+    btn.innerHTML = '🛑 Dừng Auto Pilot';
+    btn.style.background = 'var(--red)';
+    
+    const statusDiv = document.getElementById('wp-publish-status');
+    const startIdx = activePageIndex >= 0 ? activePageIndex : 0;
+    
+    // Vòng lặp tự động xử lý lần lượt từ bài viết hiện tại trở đi
+    for (let i = startIdx; i < globalScrapedPages.length; i++) {
+        if (!autoPilotRunning) break;
+        
+        // Highlight bài viết đang xử lý bên sidebar
+        selectPage(i);
+        
+        statusDiv.innerHTML = `🤖 [Auto Pilot] Đang xử lý bài viết ${i+1}/${globalScrapedPages.length}...<br>⏳ <b>Bước 1:</b> AI đang viết lại bằng [${model}]...`;
+        statusDiv.style.color = 'var(--text2)';
+        
+        try {
+            // Bước 1: AI Rewrite
+            const page = globalScrapedPages[i];
+            const resRewrite = await fetch('/api/v1/web_crawler/rewrite', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    title: page.title,
+                    content: page.content,
+                    instruction: instruction,
+                    provider: provider,
+                    model: model
+                })
+            });
+            const dataRewrite = await resRewrite.json();
+            
+            if (!autoPilotRunning) break;
+            
+            if (dataRewrite.success) {
+                // Cập nhật giao diện
+                document.getElementById('txt-title').value = dataRewrite.title;
+                page.title = dataRewrite.title;
+                document.getElementById('txt-content').value = dataRewrite.content;
+                page.content = dataRewrite.content;
+                
+                statusDiv.innerHTML = `🤖 [Auto Pilot] Đang xử lý bài viết ${i+1}/${globalScrapedPages.length}...<br>✓ AI biên tập xong!<br>⏳ <b>Bước 2:</b> Đang bắn lên WordPress vệ tinh...`;
+            } else {
+                statusDiv.innerHTML = `🤖 [Auto Pilot] <span style="color:var(--red)">Lỗi AI bài viết ${i+1}: ${dataRewrite.detail || 'Không xác định'}</span>. Chuyển sang bài tiếp theo sau 3 giây...`;
+                toast(`Lỗi AI bài viết thứ ${i+1}`, 'error');
+                await new Promise(r => setTimeout(r, 3000));
+                continue;
+            }
+            
+            if (!autoPilotRunning) break;
+            
+            // Bước 2: WordPress Publish
+            const site = wpSites.find(x => x.id === wpSel);
+            if (!site) throw new Error("Không tìm thấy cấu hình website");
+            
+            let htmlContent = page.content;
+            const pageUrl = page.url || "";
+            let thumbUrl = null;
+            
+            htmlContent = htmlContent.replace(/\n/g, '<br>');
+            htmlContent = htmlContent.replace(/\[IMAGE:\s*(https?:\/\/[^\]]+)\]/gi, function(match, url) {
+                return `<br><img src="${url}" style="max-width:100%; height:auto; margin: 20px 0; border-radius: 8px;" /><br>`;
+            });
+            
+            if (pageUrl.includes("youtube.com/watch") || pageUrl.includes("youtu.be/")) {
+                let vidId = "";
+                let m = pageUrl.match(/(?:v=|youtu\.be\/)([^&]+)/);
+                if (m) vidId = m[1];
+                if (vidId) {
+                    const embedHtml = `<div class="yt-embed-wrapper" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;max-width:100%;margin:24px 0;"><iframe src="https://www.youtube.com/embed/${vidId}" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+                    htmlContent = embedHtml + "<br>" + htmlContent;
+                }
+            }
+            
+            const images = page.images;
+            if (images && images.length > 0) {
+                let firstImg = images[0];
+                thumbUrl = typeof firstImg === 'string' ? firstImg : (firstImg.url || null);
+            }
+            
+            const catVal = document.getElementById('wp-category-select')?.value;
+            const category_id = catVal ? parseInt(catVal) : null;
+            
+            const postData = {
+                wp_url: site.url,
+                username: site.user,
+                app_password: site.pass,
+                title: page.title,
+                content: htmlContent,
+                status: 'publish',
+                thumbnail_url: thumbUrl,
+                category_id: category_id,
+                google_indexing_cred_id: site.google_indexing_cred_id || null
+            };
+            
+            const resPub = await fetch('/api/v1/web_crawler/publish_wp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(postData)
+            });
+            const dataPub = await resPub.json();
+            
+            if (resPub.ok && dataPub.success) {
+                statusDiv.innerHTML = `🤖 [Auto Pilot] Đang xử lý bài viết ${i+1}/${globalScrapedPages.length}...<br><span style="color:var(--green)">✓ Đăng thành công bài ${i+1}!</span> Link: <a href="${dataPub.link}" target="_blank" style="color:var(--accent); text-decoration:underline;">Xem bài viết</a>`;
+                toast(`Bài viết ${i+1} đăng thành công!`, 'success');
+            } else {
+                statusDiv.innerHTML = `🤖 [Auto Pilot] <span style="color:var(--red)">Lỗi WP bài viết ${i+1}: ${dataPub.detail || 'Lỗi API WordPress'}</span>.`;
+                toast(`Lỗi đăng bài viết ${i+1}!`, 'error');
+            }
+            
+            // Nghỉ 3 giây giãn cách tự nhiên trước khi xử lý bài tiếp theo
+            await new Promise(r => setTimeout(r, 3000));
+            
+        } catch (err) {
+            statusDiv.innerHTML = `🤖 [Auto Pilot] <span style="color:var(--red)">Gặp lỗi bài ${i+1}: ${err.message}</span>`;
+            toast(`Lỗi xử lý bài ${i+1}`, 'error');
+            await new Promise(r => setTimeout(r, 4000));
+        }
+    }
+    
+    // Hoàn tất Auto Pilot
+    autoPilotRunning = false;
+    btn.innerHTML = '🤖 Auto Pilot';
+    btn.style.background = 'linear-gradient(135deg, var(--accent2), #6d28d9)';
+    statusDiv.innerHTML = '🏁 <b>Tự động hoàn thành!</b> Đã xử lý tất cả bài viết được yêu cầu.';
+    statusDiv.style.color = 'var(--green)';
+    toast('Hệ thống Auto Pilot hoàn tất chiến dịch!', 'success');
 }
 
 // --- WP PUBLISH LOGIC ---
@@ -636,8 +1525,10 @@ async function publishWp(statusMode) {
     btn.innerHTML = '<span class="spinner"></span> Bắn...';
     
     let htmlContent = globalScrapedPages[activePageIndex].content;
+    const pageUrl = globalScrapedPages[activePageIndex].url || "";
+    let thumbUrl = null;
     
-    // Replace newlines with <br> to keep AI paragraph formatting
+    // Convert newlines with <br> to keep AI paragraph formatting
     htmlContent = htmlContent.replace(/\n/g, '<br>');
     
     // Convert [IMAGE: url] back to standard HTML <img> tags aligned nicely
@@ -645,13 +1536,40 @@ async function publishWp(statusMode) {
         return `<br><img src="${url}" style="max-width:100%; height:auto; margin: 20px 0; border-radius: 8px;" /><br>`;
     });
 
+    // Add YouTube embed if it's a youtube URL
+    if (pageUrl.includes("youtube.com/watch") || pageUrl.includes("youtu.be/")) {
+        let vidId = "";
+        let m = pageUrl.match(/(?:v=|youtu\.be\/)([^&]+)/);
+        if (m) vidId = m[1];
+        if (vidId) {
+            const embedHtml = `<div class="yt-embed-wrapper" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;max-width:100%;margin:24px 0;"><iframe src="https://www.youtube.com/embed/${vidId}" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+            // Insert at the beginning
+            htmlContent = embedHtml + "<br>" + htmlContent;
+        }
+    }
+    
+    // Extract first image as thumbnail/featured image for WordPress
+    const images = globalScrapedPages[activePageIndex].images;
+    if (images && images.length > 0) {
+        let firstImg = images[0];
+        thumbUrl = typeof firstImg === 'string' ? firstImg : (firstImg.url || null);
+    }
+
+    const index_sa = site.google_indexing_cred_id || null;
+
+    const catVal = document.getElementById('wp-category-select')?.value;
+    const category_id = catVal ? parseInt(catVal) : null;
+
     const postData = {
         wp_url: wp_url,
         username: username,
         app_password: app_password,
         title: globalScrapedPages[activePageIndex].title,
         content: htmlContent,
-        status: statusMode
+        status: statusMode,
+        thumbnail_url: thumbUrl,
+        category_id: category_id,
+        google_indexing_cred_id: index_sa || null
     };
     
     try {
@@ -661,21 +1579,113 @@ async function publishWp(statusMode) {
             body: JSON.stringify(postData)
         });
         const respData = await res.json();
+        const statusDiv = document.getElementById('wp-publish-status');
+        
         if(res.ok && respData.success) {
-            toast('Đăng lên Web thần tốc thành công!', 'success');
+            let indexStatusHTML = '';
+            if (respData.google_indexed === true) {
+                indexStatusHTML = '<br>🚀 <b>Google Index:</b> Đã gửi yêu cầu ép Index tự động.';
+            } else if (respData.google_indexed === false) {
+                indexStatusHTML = '<br>⚠️ <b>Google Index:</b> Thất bại (Lỗi cấu hình hoặc giới hạn API).';
+            } else {
+                indexStatusHTML = '<br>ℹ️ <b>Google Index:</b> <span style="color:#eab308">Bỏ qua (Chưa gắn cấu hình cho Website này).</span>';
+            }
+
+            let msgHTML = `<b>✅ Thành công!</b> ${respData.message || 'Đã xuất lên WordPress'}`;
             if(respData.post_url) {
-                // Open new tab
+                msgHTML += `<br>🔗 <a href="${respData.post_url}" target="_blank" style="color:#0ea5e9; text-decoration:underline;">Mở xem bài viết vừa đăng</a>`;
                 window.open(respData.post_url, '_blank');
             }
+            msgHTML += indexStatusHTML;
+
+            if(statusDiv) {
+                statusDiv.innerHTML = msgHTML;
+                statusDiv.style.color = 'var(--text)';
+            }
+            toast('Đã hoàn tất đăng bài!', 'success');
         } else {
-            toast(respData.detail || 'Lỗi hệ thống WP', 'error');
+            const errStr = respData.detail || 'Lỗi hệ thống WP';
+            if(statusDiv) {
+                statusDiv.innerHTML = `❌ <b>Lỗi:</b> ${escHtml(errStr)}`;
+                statusDiv.style.color = 'var(--red)';
+            }
+            toast(errStr, 'error');
         }
     } catch(e) {
+        const statusDiv = document.getElementById('wp-publish-status');
+        if(statusDiv) {
+            statusDiv.innerHTML = `❌ <b>Lỗi mạng:</b> ${escHtml(e.message)}`;
+            statusDiv.style.color = 'var(--red)';
+        }
         toast('Lỗi khi bắn API CMS: ' + e.message, 'error');
     }
     
     btn.innerHTML = og;
     btn.disabled = false;
+}
+
+let currentWpCategories = [];
+
+async function onWpSiteChange(siteId) {
+    localStorage.setItem('tc_crawler_wp_site_id', siteId);
+    const catSel = document.getElementById('wp-category-select');
+    if (!catSel) return;
+    
+    catSel.innerHTML = '<option value="">-- Đang tải danh mục... --</option>';
+    currentWpCategories = [];
+    
+    if (!siteId) {
+        catSel.innerHTML = '<option value="">-- Chọn Website trước --</option>';
+        return;
+    }
+    
+    const site = wpSites.find(x => x.id === siteId);
+    if (!site) {
+        catSel.innerHTML = '<option value="">-- Lỗi cấu hình --</option>';
+        return;
+    }
+    
+    try {
+        const res = await fetch('/api/v1/web_crawler/wp_categories', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                wp_url: site.url,
+                username: site.user,
+                app_password: site.pass
+            })
+        });
+        
+        const data = await res.json();
+        if (data.success && data.categories && data.categories.length > 0) {
+            currentWpCategories = data.categories;
+            catSel.innerHTML = '';
+            
+            // Thêm option mặc định
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = '';
+            defaultOpt.textContent = '-- Chọn chuyên mục (Mặc định) --';
+            catSel.appendChild(defaultOpt);
+            
+            data.categories.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                catSel.appendChild(opt);
+            });
+            
+            // Khôi phục lựa chọn category đã lưu
+            const savedCat = localStorage.getItem('tc_crawler_wp_category_id_' + siteId);
+            if (savedCat && Array.from(catSel.options).some(o => o.value === savedCat)) {
+                catSel.value = savedCat;
+            }
+        } else {
+            const errMsg = data.error || 'Lỗi không xác định';
+            catSel.innerHTML = `<option value="">-- Lỗi tải: ${escHtml(errMsg)} --</option>`;
+        }
+    } catch (e) {
+        catSel.innerHTML = `<option value="">-- Lỗi kết nối: ${escHtml(e.message)} --</option>`;
+    }
 }
 
 // --- WP MANAGER LOGIC ---
@@ -736,26 +1746,32 @@ async function loadWpSites() {
 function renderWpDropdown() {
     const sel = document.getElementById('wp-site-select');
     if (!sel) return;
-    const currentVal = sel.value;
-    sel.innerHTML = '';
-    if (wpSites.length === 0) {
-        sel.innerHTML = '<option value="">-- Chưa có Website nào, hãy Nhấn Quản Lý Trang Web --</option>';
-        return;
-    }
+    
+    sel.innerHTML = '<option value="">-- Chọn Website --</option>';
+    
     wpSites.forEach(s => {
         const opt = document.createElement('option');
         opt.value = s.id;
         opt.textContent = `${s.name} (${s.url})`;
         sel.appendChild(opt);
     });
-    // Check if currentVal is valid
-    if (currentVal && wpSites.some(s => s.id === currentVal)) {
-        sel.value = currentVal;
+    
+    // Khôi phục lựa chọn website đã lưu
+    let savedSite = localStorage.getItem('tc_crawler_wp_site_id');
+    if (savedSite && wpSites.some(s => s.id === savedSite)) {
+        sel.value = savedSite;
+        onWpSiteChange(savedSite);
+    } else if (wpSites.length > 0) {
+        sel.value = wpSites[0].id;
+        onWpSiteChange(wpSites[0].id);
+    } else {
+        onWpSiteChange('');
     }
 }
 
 function openWpManager() {
     document.getElementById('wp-manager-modal').style.display = 'flex';
+    fetchIndexingAccounts();
     renderWpManagerList();
     clearWpForm();
 }
@@ -781,8 +1797,8 @@ function renderWpManagerList() {
                 <div style="font-size:11px; color:var(--text2); white-space:nowrap; text-overflow:ellipsis; overflow:hidden;">${escHtml(s.url)} | User: ${escHtml(s.user)}</div>
             </div>
             <div style="flex-shrink:0; display:flex; gap:8px;">
-                <button onclick="editWpSite('${s.id}')" style="background:rgba(34,211,238,0.1); border:1px solid var(--accent); color:var(--accent); border-radius:4px; cursor:pointer; padding:4px 8px; font-size:11px;">Sửa</button>
-                <button onclick="deleteWpSite('${s.id}')" style="background:rgba(244,63,94,0.1); border:1px solid var(--red); color:var(--red); border-radius:4px; cursor:pointer; padding:4px 8px; font-size:11px;">Xóa</button>
+                <button onclick="editWpSite('${s.id}')" style="background:rgba(34,211,238,0.1); border:1px solid var(--accent); color:var(--accent); border-radius:4px; cursor:pointer; padding:4px 8px; font-size:11px;">${locales['btn_edit'] || 'Sửa'}</button>
+                <button onclick="deleteWpSite('${s.id}')" style="background:rgba(244,63,94,0.1); border:1px solid var(--red); color:var(--red); border-radius:4px; cursor:pointer; padding:4px 8px; font-size:11px;">${locales['btn_delete'] || 'Xóa'}</button>
             </div>
         `;
         list.appendChild(item);
@@ -795,7 +1811,9 @@ function clearWpForm() {
     document.getElementById('m-wp-url').value = '';
     document.getElementById('m-wp-user').value = '';
     document.getElementById('m-wp-pass').value = '';
-    document.getElementById('wp-form-title').textContent = 'Thêm Website Mới';
+    const saSelect = document.getElementById('m-wp-indexing-sa');
+    if (saSelect) saSelect.value = '';
+    document.getElementById('wp-form-title').textContent = locales['wp_add_new'] || 'Thêm Website Mới';
 }
 
 function editWpSite(id) {
@@ -806,7 +1824,9 @@ function editWpSite(id) {
     document.getElementById('m-wp-url').value = s.url;
     document.getElementById('m-wp-user').value = s.user;
     document.getElementById('m-wp-pass').value = s.pass;
-    document.getElementById('wp-form-title').textContent = 'Sửa Website: ' + s.name;
+    const saSelect = document.getElementById('m-wp-indexing-sa');
+    if (saSelect) saSelect.value = s.google_indexing_cred_id || '';
+    document.getElementById('wp-form-title').textContent = (locales['wp_edit_title'] || 'Sửa Website: ') + s.name;
 }
 
 async function deleteWpSite(id) {
@@ -834,7 +1854,8 @@ async function saveWpSite() {
 
     const payload = { 
         id: id || Date.now().toString(), 
-        name, url, user, pass 
+        name, url, user, pass,
+        google_indexing_cred_id: document.getElementById('m-wp-indexing-sa') ? document.getElementById('m-wp-indexing-sa').value : null
     };
 
     try {
@@ -876,9 +1897,10 @@ function switchTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + tab).classList.add('active');
 
-    // Toggle panels
+    // All panels
     const crawlerEls = ['input-area', 'welcome-panel', 'workspace-grid'];
     const watcherPanel = document.getElementById('watcher-panel');
+    const youtubePanel = document.getElementById('youtube-panel');
 
     if (tab === 'crawler') {
         crawlerEls.forEach(id => {
@@ -886,18 +1908,25 @@ function switchTab(tab) {
             if (el) el.style.display = el.dataset.prevDisplay || '';
         });
         watcherPanel.classList.remove('visible');
-    } else {
-        // Hide crawler elements, remembering their display state
+        youtubePanel.classList.remove('visible');
+    } else if (tab === 'watcher') {
         crawlerEls.forEach(id => {
             const el = document.getElementById(id);
-            if (el) {
-                el.dataset.prevDisplay = el.style.display;
-                el.style.display = 'none';
-            }
+            if (el) { el.dataset.prevDisplay = el.style.display; el.style.display = 'none'; }
         });
         watcherPanel.classList.add('visible');
+        youtubePanel.classList.remove('visible');
         loadWatches();
         populateWatchTargetSites();
+    } else if (tab === 'youtube') {
+        crawlerEls.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.dataset.prevDisplay = el.style.display; el.style.display = 'none'; }
+        });
+        watcherPanel.classList.remove('visible');
+        youtubePanel.classList.add('visible');
+        loadYtWatches();
+        populateYtTargetSites();
     }
 }
 
@@ -979,6 +2008,7 @@ function renderWatchesList() {
                     </div>
                 </div>
                 <div class="watch-actions">
+                    <button class="watch-btn" onclick="openEditWatch('${w.id}', 'web')">✏️ Sửa</button>
                     ${w.status === 'active' 
                         ? `<button class="watch-btn" onclick="pauseWatch('${w.id}')">⏸️ Dừng</button>` 
                         : `<button class="watch-btn" onclick="resumeWatch('${w.id}')">▶️ Tiếp</button>`}
@@ -1135,7 +2165,378 @@ async function loadWatchBadge() {
     } catch(e) {}
 }
 
-window.onload = () => { loadLocales(); loadWatchBadge(); }
+// ════════════════════════════════════════════════════════════
+// YOUTUBE WATCHER UI LOGIC
+// ════════════════════════════════════════════════════════════
+
+let ytWatchesData = [];
+let resolvedChannelId = '';
+
+function populateYtTargetSites() {
+    const sel = document.getElementById('yt-target-site');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">-- Chọn website --</option>';
+    wpSites.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.name || s.url;
+        opt.textContent = `${s.name} (${s.url})`;
+        sel.appendChild(opt);
+    });
+}
+
+async function resolveYtChannel() {
+    const url = document.getElementById('yt-channel-url').value.trim();
+    if (!url) { toast('Nhập URL kênh YouTube trước!', 'error'); return; }
+
+    const btn = document.getElementById('btn-resolve-yt');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px"></span>';
+
+    try {
+        const res = await fetch('/api/v1/web_crawler/youtube/resolve_channel', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({channel_url: url})
+        });
+        const data = await res.json();
+        if (data.success) {
+            resolvedChannelId = data.channel_id;
+            const preview = document.getElementById('yt-channel-preview');
+            document.getElementById('yt-preview-thumb').src = data.channel_thumbnail || 'https://img.youtube.com/vi/default/default.jpg';
+            document.getElementById('yt-preview-name').textContent = data.channel_name || data.channel_id;
+            document.getElementById('yt-preview-id').textContent = `Channel ID: ${data.channel_id}`;
+            preview.style.display = 'flex';
+            toast(`✅ Tìm thấy kênh: ${data.channel_name}`, 'success');
+        } else {
+            toast(data.error || 'Không tìm thấy kênh', 'error');
+        }
+    } catch(e) {
+        toast('Lỗi kết nối: ' + e.message, 'error');
+    }
+    btn.disabled = false; btn.innerHTML = '🔍 Kiểm tra';
+}
+
+async function createYtWatch() {
+    const channelUrl = document.getElementById('yt-channel-url').value.trim();
+    if (!channelUrl) { toast('Nhập URL kênh trước!', 'error'); return; }
+
+    const btn = document.getElementById('btn-create-yt');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px"></span> Đang xử lý...';
+
+    try {
+        const res = await fetch('/api/v1/web_crawler/youtube/watches', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                channel_url: channelUrl,
+                interval_hours: parseFloat(document.getElementById('yt-interval').value) || 6,
+                target_site: document.getElementById('yt-target-site').value,
+                instruction: document.getElementById('yt-instruction').value || 'Viết lại thành bài báo hoàn chỉnh',
+                embed_original_video: document.getElementById('yt-embed-video').checked,
+                max_videos_per_check: parseInt(document.getElementById('yt-max-videos').value) || 3,
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            toast('✅ Đã bắt đầu theo dõi kênh!', 'success');
+            document.getElementById('yt-channel-url').value = '';
+            document.getElementById('yt-channel-preview').style.display = 'none';
+            resolvedChannelId = '';
+            await loadYtWatches();
+        } else {
+            toast(data.detail || 'Lỗi tạo watch', 'error');
+        }
+    } catch(e) {
+        toast('Lỗi kết nối: ' + e.message, 'error');
+    }
+    btn.disabled = false; btn.innerHTML = '▶️ Bắt đầu Theo dõi Kênh';
+}
+
+async function loadYtWatches() {
+    try {
+        const res = await fetch('/api/v1/web_crawler/youtube/watches');
+        const data = await res.json();
+        if (data.success) {
+            ytWatchesData = data.watches || [];
+            renderYtWatchesList();
+            updateYtBadge();
+        }
+    } catch(e) { console.error('Failed to load YT watches:', e); }
+}
+
+function updateYtBadge() {
+    const badge = document.getElementById('yt-watch-count-badge');
+    const activeCount = ytWatchesData.filter(w => w.status === 'active').length;
+    badge.textContent = activeCount;
+    badge.style.display = activeCount > 0 ? 'inline' : 'none';
+}
+
+function renderYtWatchesList() {
+    const container = document.getElementById('yt-watcher-list');
+    if (ytWatchesData.length === 0) {
+        container.innerHTML = `
+            <div class="watcher-empty">
+                <div class="icon">▶️</div>
+                <div style="font-size:16px; font-weight:600; margin-bottom:8px;">Đầu năm chưa theo dõi kênh YouTube nào</div>
+                <div style="font-size:13px;">Nhập URL kênh ở trên để hệ thống tự động phát hiện video mới và đăng bài lên WordPress</div>
+            </div>`;
+        return;
+    }
+    container.innerHTML = '';
+    ytWatchesData.forEach(w => {
+        const statusText = w.status === 'active' ? '🟢 Đang chạy' : w.status === 'paused' ? '⏸️ Tạm dừng' : '🔴 Lỗi';
+        const nextCheck = w.next_check_at ? w.next_check_at.slice(0,16).replace('T',' ') : 'N/A';
+        const lastCheck = w.last_checked_at ? w.last_checked_at.slice(0,16).replace('T',' ') : 'Chưa check';
+        const stats = w.stats || {};
+        const isInit = w.is_initialized;
+
+        const card = document.createElement('div');
+        card.className = 'watch-card';
+        card.style.borderLeft = '3px solid #ff0000';
+        card.innerHTML = `
+            <div class="watch-header">
+                <div style="display:flex; align-items:center; gap:12px; flex:1;">
+                    ${w.channel_thumbnail ? `<img src="${escHtml(w.channel_thumbnail)}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;">` : '<div style="width:44px;height:44px;border-radius:50%;background:#ff0000;display:flex;align-items:center;justify-content:center;font-size:20px;">▶️</div>'}
+                    <div style="flex:1;">
+                        <div style="font-weight:700; color:var(--text); font-size:14px;">${escHtml(w.channel_name || w.channel_id)}</div>
+                        <div style="font-size:11px; color:var(--text3); margin-top:2px;">${escHtml(w.channel_url)}</div>
+                        <div style="margin-top:4px;">
+                            <span class="watch-status ${w.status || 'active'}">${statusText}</span>
+                            ${!isInit ? '<span style="margin-left:8px; font-size:11px; color:#eab308;">⏳ Chờ snapshot lần đầu</span>' : ''}
+                        </div>
+                    </div>
+                </div>
+                <div class="watch-actions">
+                    <button class="watch-btn" onclick="openEditWatch('${w.id}', 'yt')">✏️ Sửa</button>
+                    ${w.status === 'active'
+                        ? `<button class="watch-btn" onclick="pauseYtWatch('${w.id}')">⏸️ Dừng</button>`
+                        : `<button class="watch-btn" onclick="resumeYtWatch('${w.id}')">▶️ Tiếp</button>`}
+                    <button class="watch-btn" onclick="checkYtNow('${w.id}')">🔍 Check</button>
+                    <button class="watch-btn danger" onclick="deleteYtWatch('${w.id}')">🗑️</button>
+                </div>
+            </div>
+            <div class="watch-meta">
+                <span>⏰ Mỗi ${w.interval_hours}h</span>
+                <span>🌎 ${escHtml(w.target_site || 'Chưa chọn WP')}</span>
+                <span>📊 Đã đăng: <b>${stats.total_published || 0}</b> | Bỏ qua: ${stats.total_skipped || 0}</span>
+                <span>⏱️ Trước: ${lastCheck}</span>
+                <span>➡️ Tiếp: ${nextCheck}</span>
+            </div>
+            <div style="font-size:12px; color:var(--text3); margin-top:4px;">🤖 ${escHtml(w.instruction)}</div>
+            <div style="margin-top:8px; display:flex; gap:8px;">
+                <button class="watch-btn" onclick="toggleYtLogs('${w.id}')">📋 Xem Log</button>
+            </div>
+            <div id="yt-logs-${w.id}" style="display:none;"></div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+async function deleteYtWatch(id) {
+    if (!confirm('Xóa khỏi danh sách theo dõi kênh YouTube này?')) return;
+    try {
+        await fetch(`/api/v1/web_crawler/youtube/watches/${id}`, {method: 'DELETE'});
+        toast('✅ Đã xóa', 'success');
+        loadYtWatches();
+    } catch(e) { toast('Lỗi xóa', 'error'); }
+}
+
+async function pauseYtWatch(id) {
+    await fetch(`/api/v1/web_crawler/youtube/watches/${id}/pause`, {method: 'PATCH'});
+    loadYtWatches();
+}
+
+async function resumeYtWatch(id) {
+    await fetch(`/api/v1/web_crawler/youtube/watches/${id}/resume`, {method: 'PATCH'});
+    loadYtWatches();
+}
+
+async function checkYtNow(id) {
+    toast('🔄 Đang kiểm tra kênh YouTube...', 'success');
+    try {
+        const res = await fetch(`/api/v1/web_crawler/youtube/watches/${id}/check_now`, {method: 'POST'});
+        const data = await res.json();
+        if (data.success) {
+            const r = data.result || {};
+            const pub = (r.published || []).length;
+            const skip = (r.skipped || []).length;
+            const errs = (r.errors || []).length;
+            if (r.message) toast(r.message, 'success');
+            else if (pub > 0 || skip > 0) toast(`✅ ${pub} đăng | ⏭️ ${skip} bỏ qua | ❌ ${errs} lỗi`, 'success');
+            else toast('Không có video mới', 'success');
+            loadYtWatches();
+        } else {
+            toast('Lỗi: ' + (data.detail || ''), 'error');
+        }
+    } catch(e) { toast('Lỗi kết nối: ' + e.message, 'error'); }
+}
+
+async function toggleYtLogs(id) {
+    const container = document.getElementById(`yt-logs-${id}`);
+    if (!container) return;
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        container.innerHTML = '<div style="padding:8px; color:var(--text3); font-size:12px;">Đang tải...</div>';
+        try {
+            const res = await fetch(`/api/v1/web_crawler/youtube/watches/${id}/logs?limit=20`);
+            const data = await res.json();
+            if (data.success && data.logs.length > 0) {
+                const logsHtml = data.logs.reverse().map(l => {
+                    const time = (l.timestamp || '').slice(0,16).replace('T',' ');
+                    const icon = l.type === 'error' ? '❌' : l.type === 'init' ? '📸' : l.type === 'check_complete' ? '✅' : '🔍';
+                    return `<div class="log-entry"><span class="log-time">${time}</span><span class="log-msg">${icon} ${escHtml(l.message || '')}</span></div>`;
+                }).join('');
+                container.innerHTML = `<div class="log-panel">${logsHtml}</div>`;
+            } else {
+                container.innerHTML = '<div class="log-panel"><div style="font-size:12px; color:var(--text3);">Chưa có log nào.</div></div>';
+            }
+        } catch(e) { container.innerHTML = '<div class="log-panel"><div style="color:var(--red); font-size:12px;">Lỗi tải logs</div></div>'; }
+    } else { container.style.display = 'none'; }
+}
+
+window.onload = () => { loadLocales(); loadWatchBadge(); loadYtBadge(); }
+
+async function loadYtBadge() {
+    try {
+        const res = await fetch('/api/v1/web_crawler/youtube/watches');
+        const data = await res.json();
+        if (data.success) {
+            ytWatchesData = data.watches || [];
+            updateYtBadge();
+        }
+    } catch(e) {}
+}
+
+async function fetchIndexingAccounts() {
+    try {
+        const els = document.querySelectorAll('.indexing-sa-dropdown');
+        if(els.length === 0) return;
+        
+        // Cần truyền provider=google để lấy danh sách credentials
+        const resp = await fetch('/api/v1/auth-manager/credentials?provider=google');
+        if(!resp.ok) return;
+        
+        const data = await resp.json();
+        const creds = data.credentials || [];
+        
+        // Filter those containing indexing scope AND type service_account (JSON)
+        const indexingCreds = creds.filter(c => {
+            if (!c.has_json) return false;
+            const scopes = c.scopes || [];
+            return scopes.some(s => s.includes('indexing'));
+        });
+        
+        els.forEach(sel => {
+            const currentVal = sel.value;
+            sel.innerHTML = `<option style="background: #0f172a; color: #fff;" value="">${locales['wp_indexing_off'] || '-- Không đẩy / Tắt --'}</option>`;
+            if(indexingCreds.length === 0) {
+                // If no account, users can't select anything
+                const opt = document.createElement('option');
+                opt.value = "";
+                opt.disabled = true;
+                opt.style.cssText = "background: #0f172a; color: #fff;";
+                opt.textContent = locales['wp_indexing_no_sa'] || "-- Chưa có Service Account Indexing --";
+                sel.appendChild(opt);
+            } else {
+                indexingCreds.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.style.cssText = "background: #0f172a; color: #fff;";
+                    opt.setAttribute('data-email', c.service_account_email || '');
+                    opt.textContent = `🔍 ${c.name} (${c.service_account_email})`;
+                    sel.appendChild(opt);
+                });
+                if (currentVal && indexingCreds.find(x => x.id === currentVal)) {
+                    sel.value = currentVal;
+                }
+            }
+        });
+        updateSAEmailNote(); // Trigger note visibility if previously selected
+    } catch(e) {
+        console.error("Error fetching indexing accounts", e);
+    }
+}
+
+function updateSAEmailNote() {
+    const sel = document.getElementById('m-wp-indexing-sa');
+    const note = document.getElementById('indexing-sa-note');
+    const emailDisp = document.getElementById('sa-email-display');
+    
+    if (sel && sel.value && sel.selectedIndex >= 0) {
+        const option = sel.options[sel.selectedIndex];
+        const email = option.getAttribute('data-email');
+        if (email) {
+            emailDisp.textContent = email;
+            note.style.display = 'block';
+            return;
+        }
+    }
+    if(note) note.style.display = 'none';
+}
+
+let editingWatchId = null;
+let editingWatchType = null;
+function openEditWatch(id, type) {
+    editingWatchId = id;
+    editingWatchType = type;
+    const w = type === 'web' ? watchesData.find(x => x.id === id) : ytWatchesData.find(x => x.id === id);
+    if (!w) return;
+    
+    document.getElementById('edit-w-interval').value = w.interval_hours || 6;
+    document.getElementById('edit-w-max').value = type === 'web' ? (w.max_articles_per_check || 3) : (w.max_videos_per_check || 3);
+    document.getElementById('edit-w-inst').value = w.instruction || '';
+    
+    const targetSel = document.getElementById('edit-w-target');
+    targetSel.innerHTML = '<option value="">-- Chọn website --</option>';
+    wpSites.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.name || s.url;
+        opt.textContent = `${s.name} (${s.url})`;
+        targetSel.appendChild(opt);
+    });
+    targetSel.value = w.target_site || '';
+    
+    document.getElementById('edit-w-max-label').textContent = type === 'web' ? 'Tối đa bài/lần check' : 'Tối đa video/lần check';
+    document.getElementById('edit-watch-modal').style.display = 'flex';
+}
+
+async function submitEditWatch() {
+    if (!editingWatchId) return;
+    const interval = parseFloat(document.getElementById('edit-w-interval').value) || 6;
+    const max = parseInt(document.getElementById('edit-w-max').value) || 3;
+    const target = document.getElementById('edit-w-target').value;
+    const inst = document.getElementById('edit-w-inst').value;
+    
+    const payload = {
+        interval_hours: interval,
+        target_site: target,
+        instruction: inst
+    };
+    if (editingWatchType === 'web') {
+        payload.max_articles_per_check = max;
+    } else {
+        payload.max_videos_per_check = max;
+        payload.embed_original_video = true; // defaulting since it's missing from edit modal
+    }
+
+    try {
+        const route = editingWatchType === 'web' ? `/api/v1/web_crawler/watches/${editingWatchId}` : `/api/v1/web_crawler/youtube/watches/${editingWatchId}`;
+        const res = await fetch(route, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            toast('Đã cập nhật thành công!', 'success');
+            document.getElementById('edit-watch-modal').style.display = 'none';
+            if (editingWatchType === 'web') loadWatches(); else loadYtWatches();
+        } else {
+            toast('Lỗi: ' + (data.detail || 'Unknown'), 'error');
+        }
+    } catch(e) {
+        toast('Lỗi kết nối: ' + e.message, 'error');
+    }
+}
 </script>
 </body>
 </html>

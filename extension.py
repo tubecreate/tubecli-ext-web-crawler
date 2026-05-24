@@ -12,7 +12,7 @@ try:
     from tubecli.core.extension_manager import Extension
     from tubecli.config import DATA_DIR
 except ImportError:
-    from zhiying.core.extension_manager import Extension
+    from TubeCLI.core.extension_manager import Extension
     DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data")
 
 logger = logging.getLogger("WebCrawlerExtension")
@@ -46,7 +46,7 @@ class WebCrawlerExtension(Extension):
             logger.warning(f"Could not start PageWatcher scheduler on enable: {e}")
 
     async def _start_watcher_async(self):
-        """Start the watcher scheduler asynchronously."""
+        """Start the watcher schedulers asynchronously."""
         try:
             from watcher import page_watcher
             page_watcher.start_scheduler()
@@ -54,11 +54,23 @@ class WebCrawlerExtension(Extension):
         except Exception as e:
             logger.error(f"Failed to start PageWatcher scheduler: {e}")
 
+        try:
+            from youtube_watcher import youtube_watcher
+            youtube_watcher.start_scheduler()
+            logger.info("✅ YouTubeWatcher scheduler started from on_enable")
+        except Exception as e:
+            logger.error(f"Failed to start YouTubeWatcher scheduler: {e}")
+
     def on_disable(self):
-        """Stop the watcher scheduler when extension is disabled."""
+        """Stop the watcher schedulers when extension is disabled."""
         try:
             from watcher import page_watcher
             page_watcher.stop_scheduler()
+        except Exception:
+            pass
+        try:
+            from youtube_watcher import youtube_watcher
+            youtube_watcher.stop_scheduler()
         except Exception:
             pass
 
@@ -115,7 +127,7 @@ class WebCrawlerExtension(Extension):
         import httpx
         url = action_data.get("url", "")
         if not url:
-            return "❌ Thiếu URL cần cào."
+            return "âŒ Thiếu URL cần cào."
 
         try:
             async with httpx.AsyncClient(timeout=60) as client:
@@ -124,7 +136,7 @@ class WebCrawlerExtension(Extension):
                     json={"url": url, "max_depth": 0, "download_images": False}
                 )
                 if resp.status_code != 200:
-                    return f"❌ Lỗi cào dữ liệu: {resp.text[:300]}"
+                    return f"âŒ Lỗi cào dữ liệu: {resp.text[:300]}"
                 data = resp.json()
                 pages = data.get("data", data) if isinstance(data, dict) else data
                 if isinstance(pages, list) and len(pages) > 0:
@@ -135,15 +147,15 @@ class WebCrawlerExtension(Extension):
                     return (
                         f"✅ **Cào thành công!**\n\n"
                         f"📰 **{title}**\n"
-                        f"🖼️ {img_count} ảnh\n\n"
-                        f"📝 Nội dung (trích):\n{content}..."
+                        f"ðŸ–¼ï¸ {img_count} ảnh\n\n"
+                        f"ðŸ“ Nội dung (trích):\n{content}..."
                     )
-                return "⚠️ Không tìm thấy nội dung từ URL."
+                return "âš ï¸ Không tìm thấy nội dung từ URL."
         except Exception as e:
-            return f"❌ Lỗi: {str(e)[:300]}"
+            return f"âŒ Lỗi: {str(e)[:300]}"
 
     async def _action_crawl_and_publish(self, action_data: dict, context: dict) -> str:
-        """Pipeline tự động: Cào → AI Biên tập → Đăng WordPress."""
+        """Pipeline tự động: Cào → AI Biên tập → Äăng WordPress."""
         import httpx
 
         url = action_data.get("url", "")
@@ -151,19 +163,19 @@ class WebCrawlerExtension(Extension):
         target_site_keyword = action_data.get("target_site", "")
 
         if not url:
-            return "❌ Thiếu URL bài viết cần xử lý."
+            return "âŒ Thiếu URL bài viết cần xử lý."
 
         # ── Step 0: Resolve WordPress site ──
         wp_site = self._find_wp_site(target_site_keyword)
         if not wp_site:
             return (
-                f"❌ Tôi chưa có cấu hình đăng nhập của website WordPress `{target_site_keyword}`.\n\n"
+                f"âŒ Tôi chưa có cấu hình đăng nhập của website WordPress `{target_site_keyword}`.\n\n"
                 f"Vui lòng gửi cho tôi thông tin của website này (URL, tài khoản và mật khẩu ứng dụng) để tôi lưu lại và dùng cho các lần sau nhé!"
             )
         site_name = wp_site.get("name", wp_site.get("url", ""))
 
         # ── Step 1: Scrape ──
-        status_parts = [f"🔄 **Bước 1/3**: Đang cào bài viết từ `{url}`..."]
+        status_parts = [f"🔄 **Bước 1/3**: Äang cào bài viết từ `{url}`..."]
 
         try:
             async with httpx.AsyncClient(timeout=90) as client:
@@ -172,19 +184,19 @@ class WebCrawlerExtension(Extension):
                     json={"url": url, "max_depth": 0, "download_images": False}
                 )
                 if resp.status_code != 200:
-                    return f"❌ Bước 1 thất bại — lỗi cào dữ liệu: {resp.text[:200]}"
+                    return f"âŒ Bước 1 thất bại — lỗi cào dữ liệu: {resp.text[:200]}"
 
                 scrape_data = resp.json()
                 pages = scrape_data.get("data", scrape_data) if isinstance(scrape_data, dict) else scrape_data
                 if not isinstance(pages, list) or len(pages) == 0:
-                    return "❌ Bước 1 thất bại — không tìm thấy nội dung từ URL."
+                    return "âŒ Bước 1 thất bại — không tìm thấy nội dung từ URL."
 
                 page = pages[0]
                 original_title = page.get("title", "Untitled")
                 original_content = page.get("content", "")
 
                 if not original_content or len(original_content) < 50:
-                    return "❌ Bước 1 thất bại — nội dung bài viết quá ngắn hoặc trống."
+                    return "âŒ Bước 1 thất bại — nội dung bài viết quá ngắn hoặc trống."
 
                 status_parts.append(f"✅ Cào thành công: **{original_title}** ({len(original_content)} ký tự)")
 
@@ -207,18 +219,18 @@ class WebCrawlerExtension(Extension):
                 )
 
                 if rewrite_resp.status_code != 200:
-                    return "\n".join(status_parts) + f"\n❌ Bước 2 thất bại — AI xử lý lỗi: {rewrite_resp.text[:200]}"
+                    return "\n".join(status_parts) + f"\nâŒ Bước 2 thất bại — AI xử lý lỗi: {rewrite_resp.text[:200]}"
 
                 rewrite_data = rewrite_resp.json()
                 if not rewrite_data.get("success"):
-                    return "\n".join(status_parts) + f"\n❌ Bước 2 thất bại — {rewrite_data.get('detail', 'Lỗi AI')}"
+                    return "\n".join(status_parts) + f"\nâŒ Bước 2 thất bại — {rewrite_data.get('detail', 'Lỗi AI')}"
 
                 new_title = rewrite_data.get("title", original_title)
                 new_content = rewrite_data.get("content", original_content)
                 status_parts.append(f"✅ AI hoàn thành: **{new_title}**")
 
                 # ── Step 3: Publish to WordPress ──
-                status_parts.append(f"🔄 **Bước 3/3**: Đang đăng bài lên **{site_name}**...")
+                status_parts.append(f"🔄 **Bước 3/3**: Äang đăng bài lên **{site_name}**...")
 
                 # Convert [IMAGE: url] tags to HTML
                 import re
@@ -246,17 +258,17 @@ class WebCrawlerExtension(Extension):
                     pub_data = publish_resp.json()
                     if pub_data.get("success"):
                         post_url = pub_data.get("post_url", "")
-                        status_parts.append(f"✅ **Đăng bài thành công!**")
+                        status_parts.append(f"✅ **Äăng bài thành công!**")
                         if post_url:
                             status_parts.append(f"🔗 {post_url}")
                         return "\n".join(status_parts)
                     else:
-                        return "\n".join(status_parts) + f"\n❌ Bước 3 thất bại — WordPress: {pub_data.get('detail', 'Lỗi')}"
+                        return "\n".join(status_parts) + f"\nâŒ Bước 3 thất bại — WordPress: {pub_data.get('detail', 'Lỗi')}"
                 else:
-                    return "\n".join(status_parts) + f"\n❌ Bước 3 thất bại — HTTP {publish_resp.status_code}"
+                    return "\n".join(status_parts) + f"\nâŒ Bước 3 thất bại — HTTP {publish_resp.status_code}"
 
         except Exception as e:
-            return "\n".join(status_parts) + f"\n❌ Pipeline lỗi: {str(e)[:300]}"
+            return "\n".join(status_parts) + f"\nâŒ Pipeline lỗi: {str(e)[:300]}"
 
     async def _action_add_wp_site(self, action_data: dict, context: dict) -> str:
         """Thêm và lưu cấu hình trang WordPress từ Chatbot."""
@@ -267,7 +279,7 @@ class WebCrawlerExtension(Extension):
         name = action_data.get("name", "")
 
         if not url or not user or not password:
-            return "❌ Thiếu thông tin! Phải có URL, username và app password."
+            return "âŒ Thiếu thông tin! Phải có URL, username và app password."
 
         import uuid
         site_id = str(uuid.uuid4())
@@ -293,11 +305,11 @@ class WebCrawlerExtension(Extension):
                     json=payload
                 )
                 if res.status_code == 200:
-                    return f"✅ Đã lưu cấu hình WordPress thành công cho website: **{name}**\nBây giờ bạn có thể yêu cầu tôi crawl & publish!"
+                    return f"✅ Äã lưu cấu hình WordPress thành công cho website: **{name}**\nBây giá» bạn có thể yêu cầu tôi crawl & publish!"
                 else:
-                    return f"❌ Lỗi khi lưu: HTTP {res.status_code}"
+                    return f"âŒ Lỗi khi lưu: HTTP {res.status_code}"
         except Exception as e:
-            return f"❌ Lỗi kết nối tới backend nội bộ: {e}"
+            return f"âŒ Lỗi kết nối tới backend nội bộ: {e}"
 
     # ── Watcher Telegram Actions ─────────────────────────────
 
@@ -307,7 +319,7 @@ class WebCrawlerExtension(Extension):
 
         url = action_data.get("url", "")
         if not url:
-            return "❌ Thiếu URL cần theo dõi."
+            return "âŒ Thiếu URL cần theo dõi."
 
         if not url.startswith("http"):
             url = "https://" + url
@@ -322,7 +334,7 @@ class WebCrawlerExtension(Extension):
         wp_site = self._find_wp_site(target_site)
         if not wp_site:
             return (
-                f"❌ Chưa có cấu hình WordPress cho `{target_site}`.\n\n"
+                f"âŒ Chưa có cấu hình WordPress cho `{target_site}`.\n\n"
                 f"Hãy gửi thông tin đăng nhập WordPress (URL, username, app password) để tôi lưu trước nhé!"
             )
 
@@ -352,11 +364,11 @@ class WebCrawlerExtension(Extension):
         site_name = wp_site.get("name", target_site)
 
         return (
-            f"✅ **Đã thiết lập theo dõi tự động!**\n\n"
+            f"✅ **Äã thiết lập theo dõi tự động!**\n\n"
             f"📡 **URL:** {url}\n"
-            f"⏰ **Kiểm tra:** mỗi {interval} tiếng\n"
-            f"🎯 **Đăng lên:** {site_name}\n"
-            f"📝 **Xử lý:** {instruction}\n"
+            f"â° **Kiểm tra:** mỗi {interval} tiếng\n"
+            f"🎯 **Äăng lên:** {site_name}\n"
+            f"ðŸ“ **Xử lý:** {instruction}\n"
             f"📊 **Tối đa:** {max_articles} bài/lần\n"
             f"🔄 **Lần kiểm tra đầu:** {next_time}\n\n"
             f"💡 Lần đầu sẽ ghi nhận danh sách bài hiện tại. Từ lần sau, mỗi bài MỚI sẽ tự động được xử lý và đăng!"
@@ -371,23 +383,23 @@ class WebCrawlerExtension(Extension):
 
         if watch_id:
             if page_watcher.remove_watch(watch_id):
-                return f"✅ Đã dừng theo dõi (ID: {watch_id[:8]}...)"
-            return f"❌ Không tìm thấy watch ID: {watch_id}"
+                return f"✅ Äã dừng theo dõi (ID: {watch_id[:8]}...)"
+            return f"âŒ Không tìm thấy watch ID: {watch_id}"
 
         if url:
             if not url.startswith("http"):
                 url = "https://" + url
             if page_watcher.remove_watch_by_url(url):
-                return f"✅ Đã dừng theo dõi: {url}"
+                return f"✅ Äã dừng theo dõi: {url}"
             # Try partial match
             watches = page_watcher.list_watches()
             for w in watches:
                 if url.lower() in w["url"].lower() or w["url"].lower() in url.lower():
                     page_watcher.remove_watch(w["id"])
-                    return f"✅ Đã dừng theo dõi: {w['url']}"
-            return f"❌ Không tìm thấy trang đang theo dõi: {url}"
+                    return f"✅ Äã dừng theo dõi: {w['url']}"
+            return f"âŒ Không tìm thấy trang đang theo dõi: {url}"
 
-        return "❌ Thiếu URL hoặc watch_id."
+        return "âŒ Thiếu URL hoặc watch_id."
 
     async def _action_list_watches(self, action_data: dict, context: dict) -> str:
         """Liệt kê các trang đang theo dõi."""
@@ -397,17 +409,17 @@ class WebCrawlerExtension(Extension):
         if not watches:
             return "📡 Chưa có trang nào đang được theo dõi.\n\n💡 Bạn có thể nói: \"Theo dõi https://vnexpress.net/the-gioi mỗi 6 tiếng, dịch sang tiếng anh và đăng lên [tên website]\""
 
-        lines = [f"📡 **Đang theo dõi {len(watches)} trang:**\n"]
+        lines = [f"📡 **Äang theo dõi {len(watches)} trang:**\n"]
         for i, w in enumerate(watches, 1):
-            status_icon = "🟢" if w["status"] == "active" else "⏸️" if w["status"] == "paused" else "🔴"
+            status_icon = "🟢" if w["status"] == "active" else "â¸ï¸" if w["status"] == "paused" else "🔴"
             next_time = w.get("next_check_at", "")[:16].replace("T", " ") if w.get("next_check_at") else "N/A"
             published = w.get("stats", {}).get("total_published", 0)
 
             lines.append(
                 f"{status_icon} **{i}.** {w['url']}\n"
-                f"   ⏰ Mỗi {w['interval_hours']}h → 🎯 {w['target_site']}\n"
-                f"   📝 {w['instruction']}\n"
-                f"   📊 Đã đăng: {published} bài | Tiếp: {next_time}"
+                f"   â° Mỗi {w['interval_hours']}h → 🎯 {w['target_site']}\n"
+                f"   ðŸ“ {w['instruction']}\n"
+                f"   📊 Äã đăng: {published} bài | Tiếp: {next_time}"
             )
 
         return "\n".join(lines)
@@ -433,16 +445,16 @@ class WebCrawlerExtension(Extension):
                     break
 
         if not watch:
-            return f"❌ Không tìm thấy watch cho `{url or watch_id}`.\n\n💡 Gửi \"danh sách theo dõi\" để xem các watch hiện tại."
+            return f"âŒ Không tìm thấy watch cho `{url or watch_id}`.\n\n💡 Gửi \"danh sách theo dõi\" để xem các watch hiện tại."
 
         # Apply updates
         changes = []
         if "instruction" in action_data:
             watch.instruction = action_data["instruction"]
-            changes.append(f"📝 Instruction → {watch.instruction}")
+            changes.append(f"ðŸ“ Instruction → {watch.instruction}")
         if "interval_hours" in action_data:
             watch.interval_hours = action_data["interval_hours"]
-            changes.append(f"⏰ Interval → mỗi {watch.interval_hours}h")
+            changes.append(f"â° Interval → mỗi {watch.interval_hours}h")
         if "target_site" in action_data:
             watch.target_site = action_data["target_site"]
             changes.append(f"🎯 Target → {watch.target_site}")
@@ -456,12 +468,12 @@ class WebCrawlerExtension(Extension):
             changes.append(f"📂 Category → {cat}")
 
         if not changes:
-            return "❌ Không có gì để cập nhật. Hãy chỉ rõ muốn thay đổi gì (instruction, interval, category...)." 
+            return "âŒ Không có gì để cập nhật. Hãy chỉ rõ muốn thay đổi gì (instruction, interval, category...)." 
 
         page_watcher._save_watches()
 
         return (
-            f"✅ Đã cập nhật watch:\n"
+            f"✅ Äã cập nhật watch:\n"
             f"🔗 {watch.url}\n\n" +
             "\n".join(changes)
         )

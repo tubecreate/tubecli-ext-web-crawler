@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -24,6 +25,36 @@ async def scrape_url(req: ScrapeRequest):
 
     if not req.url.startswith("http"):
         req.url = "https://" + req.url
+        
+    # --- Intercept YouTube URLs ---
+    if "youtube.com" in req.url or "youtu.be" in req.url:
+        try:
+            from youtube_scraper import extract_video_id, get_transcript, get_video_metadata
+            video_id = extract_video_id(req.url)
+            if video_id:
+                meta = await get_video_metadata(video_id)
+                title = meta.get("title", f"YouTube Video {video_id}")
+                transcript = get_transcript(video_id, title=title)
+                
+                content = transcript if transcript else "Nội dung trống... (Video này không cung cấp phụ Ä‘á»/transcript tự động)"
+                images = [{"url": meta.get("thumbnail_url", ""), "alt": title}] if meta.get("thumbnail_url") else []
+                
+                data = [{
+                    "url": meta.get("video_url", req.url),
+                    "title": title,
+                    "content": content,
+                    "images": images,
+                    "links": [],
+                    "metadata": meta
+                }]
+                return {
+                    "success": True,
+                    "data": data,
+                    "save_path": None
+                }
+        except Exception as e:
+            logger.warning(f"YouTube scrape fallback error: {e}")
+            # Fall through to normal scraper if it fails
 
     try:
         from tubecli.config import DATA_DIR
@@ -93,14 +124,40 @@ async def get_ai_models():
     except Exception as e:
         logger.warning(f"Failed to fetch Ollama models: {e}")
 
-    # 2. Cloud API
+    # 2. Cloud API & 9Router
     try:
         from tubecli.extensions.cloud_api.extension import key_manager
         cloud_providers = key_manager.list_providers()
         for p in cloud_providers:
+            prov_id = p.get("id")
+            
+            # Special dynamic handling for 9router
+            if prov_id == "9router":
+                try:
+                    import requests as _req
+                    key = key_manager.get_active_key("9router")
+                    headers = {}
+                    if key:
+                        headers["Authorization"] = f"Bearer {key}"
+                    resp = _req.get("http://localhost:20128/v1/models", headers=headers, timeout=2)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        models = []
+                        if isinstance(data, dict) and "data" in data:
+                            models = [m.get("id", m.get("name", "")) for m in data["data"] if isinstance(m, dict)]
+                        if models:
+                            models_list.append({
+                                "provider": "9router",
+                                "name": "🔀 9Router",
+                                "models": models
+                            })
+                except Exception as e:
+                    logger.warning(f"Failed to fetch 9Router models dynamically: {e}")
+                continue
+                
             if p.get("has_key") and p.get("models"):
                 models_list.append({
-                    "provider": p.get("id"),
+                    "provider": prov_id,
                     "name": p.get("name"),
                     "models": p.get("models")
                 })
@@ -116,7 +173,7 @@ def _get_wp_sites_file():
         from tubecli.config import DATA_DIR
         return os.path.join(DATA_DIR, "wp_sites.json")
     except ImportError:
-        from zhiying.config import DATA_DIR
+        from TubeCLI.config import DATA_DIR
         return os.path.join(DATA_DIR, "wp_sites.json")
 
 @router.get("/wp_sites")
@@ -192,6 +249,57 @@ async def delete_wp_site(site_id: str):
     except Exception as e:
         raise HTTPException(500, detail=str(e))
 
+class TestModelRequest(BaseModel):
+    provider: str
+    model: str
+
+@router.post("/test_model")
+async def test_model(req: TestModelRequest):
+    """Kiểm tra kết nối và cấu hình của AI Model được chọn (Test AI connection)"""
+    try:
+        from tubecli.extensions.cloud_api.extension import key_manager
+        from tubecli.core.ai_generator import call_gemini, call_openai_compatible, call_claude, call_ollama
+        
+        prompt = "Reply with only 'OK' if you can read this message."
+        provider = req.provider.lower()
+        
+        if provider == "ollama":
+            res = call_ollama(req.model, prompt)
+        else:
+            key = key_manager.get_active_key(provider)
+            if not key and provider != "9router":
+                return {"success": False, "error": f"Chưa cấu hình API Key cho nhóm '{provider}' (API Key not configured)"}
+                
+            if provider == "gemini":
+                res = call_gemini(req.model, key, prompt)
+            elif provider in ["openai", "chatgpt"]:
+                res = call_openai_compatible(req.model, key, prompt)
+            elif provider == "grok":
+                res = call_openai_compatible(req.model, key, prompt, base_url="https://api.x.ai/v1")
+            elif provider == "deepseek":
+                res = call_openai_compatible(req.model, key, prompt, base_url="https://api.deepseek.com/v1")
+            elif provider == "claude":
+                res = call_claude(req.model, key, prompt)
+            elif provider == "openrouter":
+                res = call_openai_compatible(req.model, key, prompt, base_url="https://openrouter.ai/api/v1")
+            elif provider == "9router":
+                res = call_openai_compatible(req.model, key or "9router", prompt, base_url="http://localhost:20128/v1")
+            else:
+                from tubecli.extensions.cloud_api.extension import PROVIDERS
+                if provider in PROVIDERS:
+                    p_info = PROVIDERS[provider]
+                    p_url = p_info.get("base_url")
+                    res = call_openai_compatible(req.model, key or provider, prompt, base_url=p_url)
+                else:
+                    return {"success": False, "error": f"Provider '{provider}' không được hỗ trợ. (Unsupported provider)"}
+                    
+        if str(res).startswith("[ERROR]") or str(res).startswith("[QUOTA_ERROR]"):
+            return {"success": False, "error": str(res)}
+            
+        return {"success": True, "response": str(res)}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
 class RewriteRequest(BaseModel):
     title: str
     content: str
@@ -209,8 +317,12 @@ async def rewrite_content(req: RewriteRequest):
         prompt = f"""Bạn là một chuyên gia biên tập nội dung.
 Yêu cầu: {req.instruction}
 
-LƯU Ý QUAN TRỌNG TỪ NGƯỜI DÙNG: Hãy trả lời bằng văn bản cực kỳ SẠCH SẼ. Tuyệt đối KHÔNG sử dụng ký tự đánh dấu (markdown) như dấu ** (in đậm, in nghiêng) trong câu trả lời. 
-TUYỆT ĐỐI BẢO TỒN VÀ GIỮ NGUYÊN CÁC THẺ [IMAGE: url] ở đúng vị trí mạch văn trong bài viết để làm hình ảnh minh họa. Không được xóa hay thay đổi url hình ảnh.
+LƯU Ý QUAN TRỌNG TỪ NGƯỜI DÙNG: Hãy trả lời bằng văn bản cực kỳ SẠCH SẼ. Tuyệt đối KHÔNG sử dụng ký tự đánh dấu (markdown) như dấu ** (in đậm, in nghiêng) trong câu trả lời."""
+
+        if "[IMAGE:" in req.content:
+            prompt += "\nTUYỆT ĐỐI BẢO TỒN VÀ GIỮ NGUYÊN CÁC THẺ [IMAGE: url] ở đúng vị trí mạch văn trong bài viết để làm hình ảnh minh họa. Không được xóa hay thay đổi url hình ảnh."
+
+        prompt += f"""
 
 BẠN BẮT BUỘC PHẢI CHIA CÂU TRẢ LỜI LÀM 2 PHẦN THEO ĐÚNG ĐỊNH DẠNG SAU:
 [TITLE]
@@ -229,7 +341,7 @@ NỘI DUNG GỐC:
         else:
             # Cloud API
             key = key_manager.get_active_key(provider)
-            if not key:
+            if not key and provider != "9router":
                 raise HTTPException(400, f"Chưa cấu hình API Key cho nhóm '{provider}'")
                 
             if provider == "gemini":
@@ -242,8 +354,19 @@ NỘI DUNG GỐC:
                 res = call_openai_compatible(req.model, key, prompt, base_url="https://api.deepseek.com/v1")
             elif provider == "claude":
                 res = call_claude(req.model, key, prompt)
+            elif provider == "openrouter":
+                res = call_openai_compatible(req.model, key, prompt, base_url="https://openrouter.ai/api/v1")
+            elif provider == "9router":
+                res = call_openai_compatible(req.model, key or "9router", prompt, base_url="http://localhost:20128/v1")
             else:
-                raise HTTPException(400, f"Provider '{provider}' không được hỗ trợ để rewrite.")
+                # Dynamic fallback based on general PROVIDERS dictionary in cloud_api
+                from tubecli.extensions.cloud_api.extension import PROVIDERS
+                if provider in PROVIDERS:
+                    p_info = PROVIDERS[provider]
+                    p_url = p_info.get("base_url")
+                    res = call_openai_compatible(req.model, key or provider, prompt, base_url=p_url)
+                else:
+                    raise HTTPException(400, f"Provider '{provider}' không được hỗ trợ để rewrite.")
                 
         if str(res).startswith("[ERROR]") or str(res).startswith("[QUOTA_ERROR]"):
             raise HTTPException(500, res)
@@ -277,10 +400,11 @@ class WPPublishRequest(BaseModel):
     thumbnail_url: Optional[str] = None  # URL ảnh để set làm Featured Image
     category_name: Optional[str] = None  # Tên category (tự tạo nếu chưa có)
     category_id: Optional[int] = None    # ID category (ưu tiên nếu có)
+    google_indexing_cred_id: Optional[str] = None # ID tài khoản Service Account
 
 @router.post("/publish_wp")
 async def publish_to_wordpress(req: WPPublishRequest):
-    """Đăng tự động nội dung lên WordPress — hỗ trợ thumbnail & category."""
+    """Äăng tự động nội dung lên WordPress — hỗ trợ thumbnail & category."""
     import base64
     import httpx
     
@@ -331,14 +455,40 @@ async def publish_to_wordpress(req: WPPublishRequest):
             
             if res.status_code in [200, 201]:
                 data = res.json()
-                return {
+                result = {
                     "success": True, 
-                    "message": "Đăng tải bài thành công!", 
+                    "message": "Äăng tải bài thành công!", 
                     "post_url": data.get("link", ""), 
                     "post_id": data.get("id"),
                     "category_id": category_id,
                     "featured_media_id": featured_media_id,
                 }
+                
+                # Google Index API (Auto Ping)
+                if req.google_indexing_cred_id and result["post_url"]:
+                    try:
+                        from tubecli.extensions.auth_manager.extension import auth_manager
+                        access_token = auth_manager.get_active_token(req.google_indexing_cred_id)
+                        if access_token:
+                            idx_resp = await client.post(
+                                "https://indexing.googleapis.com/v3/urlNotifications:publish",
+                                headers={"Authorization": f"Bearer {access_token}"},
+                                json={"url": result["post_url"], "type": "URL_UPDATED"},
+                                timeout=15
+                            )
+                            if idx_resp.status_code == 200:
+                                result["message"] += " + Äược ép Index Google tự động 🚀"
+                                result["google_indexed"] = True
+                            else:
+                                result["message"] += f" (Lỗi Index: {idx_resp.text})"
+                                result["google_indexed"] = False
+                    except ImportError:
+                        result["message"] += " (Lỗi: Chưa kích hoạt module Auth Manager)"
+                    except Exception as ex:
+                        result["message"] += f" (Lỗi gá»i Index: {ex})"
+                        result["google_indexed"] = False
+
+                return result
             else:
                 error_msg = res.text
                 try:
@@ -354,8 +504,45 @@ async def publish_to_wordpress(req: WPPublishRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+class WPCategoriesRequest(BaseModel):
+    wp_url: str
+    username: str
+    app_password: str
+
+@router.post("/wp_categories")
+async def get_wp_categories(req: WPCategoriesRequest):
+    """Lấy danh sách các categories (danh mục) từ Website WordPress bằng REST API"""
+    import base64
+    import httpx
+    
+    base_url = req.wp_url.strip().rstrip('/')
+    if not base_url.startswith('http'):
+        base_url = 'https://' + base_url
+        
+    credentials = f"{req.username}:{req.app_password}"
+    token = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
+    headers = {
+        'Authorization': f'Basic {token}',
+        'Content-Type': 'application/json'
+    }
+    
+    try:
+        async with httpx.AsyncClient(timeout=15, verify=False) as client:
+            endpoint = f"{base_url}/wp-json/wp/v2/categories?per_page=100"
+            res = await client.get(endpoint, headers=headers, follow_redirects=True)
+            if res.status_code == 200:
+                cats = res.json()
+                return {
+                    "success": True,
+                    "categories": [{"id": c.get("id"), "name": c.get("name")} for c in cats]
+                }
+            else:
+                return {"success": False, "error": f"Lỗi WordPress REST API (Code {res.status_code}): {res.text}"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
 async def _resolve_wp_category(client, base_url: str, headers: dict, category_name: str) -> Optional[int]:
-    """Tìm category theo tên, tự tạo mới nếu chưa có. Trả về category ID."""
+    """Tìm category theo tên, tự tạo mới nếu chưa có. Trả vá» category ID."""
     try:
         # Search existing categories
         search_url = f"{base_url}/wp-json/wp/v2/categories?search={category_name}&per_page=100"
@@ -389,7 +576,7 @@ async def _resolve_wp_category(client, base_url: str, headers: dict, category_na
 
 async def _upload_wp_thumbnail(client, base_url: str, auth_token: str, 
                                 image_url: str, post_title: str) -> Optional[int]:
-    """Download ảnh từ URL và upload lên WordPress Media Library. Trả về media ID."""
+    """Download ảnh từ URL và upload lên WordPress Media Library. Trả vá» media ID."""
     try:
         # Download image
         img_resp = await client.get(image_url, timeout=30, follow_redirects=True)
@@ -479,9 +666,9 @@ async def list_wp_categories(wp_url: str, username: str, app_password: str):
         raise HTTPException(500, detail=str(e))
 
 
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 # PAGE WATCHER ROUTES
-# ══════════════════════════════════════════════════════════════
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class WatchRequest(BaseModel):
     url: str
@@ -531,6 +718,27 @@ async def create_watch(req: WatchRequest):
     except Exception as e:
         raise HTTPException(500, detail=str(e))
 
+@router.put("/watches/{watch_id}")
+async def update_watch(watch_id: str, req: WatchRequest):
+    """Cập nhật một watch."""
+    try:
+        from watcher import page_watcher
+        w = page_watcher.update_watch(
+            watch_id,
+            interval_hours=req.interval_hours,
+            target_site=req.target_site,
+            instruction=req.instruction,
+            max_articles_per_check=req.max_articles_per_check,
+            url_pattern=req.url_pattern,
+            wp_category_name=req.wp_category_name,
+        )
+        if w:
+            return {"success": True, "watch": w.to_dict()}
+        raise HTTPException(404, detail="Watch not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
 
 @router.delete("/watches/{watch_id}")
 async def delete_watch(watch_id: str):
@@ -658,5 +866,205 @@ async def test_pipeline(watch_id: str):
     except Exception as e:
         import traceback
         traceback.print_exc()
+        raise HTTPException(500, detail=str(e))
+
+
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# YOUTUBE CHANNEL WATCHER ROUTES
+# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+class YouTubeWatchRequest(BaseModel):
+    channel_url: str
+    interval_hours: float = 6
+    target_site: str = ""
+    instruction: str = "Viết lại thành bài báo hoàn chỉnh"
+    embed_original_video: bool = True
+    max_videos_per_check: int = 3
+    wp_category_name: Optional[str] = None
+
+
+@router.get("/youtube/watches")
+async def list_yt_watches():
+    """Lấy danh sách kênh YouTube đang theo dõi."""
+    try:
+        from youtube_watcher import youtube_watcher
+        watches = youtube_watcher.list_watches()
+        return {"success": True, "watches": watches, "count": len(watches)}
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.post("/youtube/watches")
+async def create_yt_watch(req: YouTubeWatchRequest):
+    """Bắt đầu theo dõi một kênh YouTube."""
+    try:
+        from youtube_watcher import youtube_watcher
+        watch = await youtube_watcher.add_watch(
+            channel_url=req.channel_url,
+            interval_hours=req.interval_hours,
+            target_site=req.target_site,
+            instruction=req.instruction,
+            embed_original_video=req.embed_original_video,
+            max_videos_per_check=req.max_videos_per_check,
+            wp_category_name=req.wp_category_name,
+        )
+        youtube_watcher.start_scheduler()
+        return {"success": True, "watch": watch.to_dict()}
+    except ValueError as e:
+        raise HTTPException(400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.put("/youtube/watches/{watch_id}")
+async def update_yt_watch(watch_id: str, req: YouTubeWatchRequest):
+    """Cập nhật một Youtube watch."""
+    try:
+        from youtube_watcher import youtube_watcher
+        w = youtube_watcher.update_watch(
+            watch_id,
+            interval_hours=req.interval_hours,
+            target_site=req.target_site,
+            instruction=req.instruction,
+            embed_original_video=req.embed_original_video,
+            max_videos_per_check=req.max_videos_per_check,
+            wp_category_name=req.wp_category_name,
+        )
+        if w:
+            youtube_watcher.start_scheduler()
+            return {"success": True, "watch": w.to_dict()}
+        raise HTTPException(404, detail="Watch not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.delete("/youtube/watches/{watch_id}")
+async def delete_yt_watch(watch_id: str):
+    """Xóa một YouTube watch."""
+    try:
+        from youtube_watcher import youtube_watcher
+        if youtube_watcher.remove_watch(watch_id):
+            return {"success": True}
+        raise HTTPException(404, detail="Watch not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.patch("/youtube/watches/{watch_id}/pause")
+async def pause_yt_watch(watch_id: str):
+    """Tạm dừng theo dõi kênh YouTube."""
+    try:
+        from youtube_watcher import youtube_watcher
+        if youtube_watcher.pause_watch(watch_id):
+            return {"success": True, "status": "paused"}
+        raise HTTPException(404, detail="Watch not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.patch("/youtube/watches/{watch_id}/resume")
+async def resume_yt_watch(watch_id: str):
+    """Tiếp tục theo dõi kênh YouTube."""
+    try:
+        from youtube_watcher import youtube_watcher
+        if youtube_watcher.resume_watch(watch_id):
+            return {"success": True, "status": "active"}
+        raise HTTPException(404, detail="Watch not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.post("/youtube/watches/{watch_id}/check_now")
+async def check_yt_now(watch_id: str):
+    """Force check kênh YouTube ngay lập tức."""
+    try:
+        from youtube_watcher import youtube_watcher
+        watch = youtube_watcher.get_watch(watch_id)
+        if not watch:
+            raise HTTPException(404, detail="Watch not found")
+        result = await asyncio.wait_for(
+            youtube_watcher.check_watch(watch_id),
+            timeout=180
+        )
+        return {"success": True, "result": result}
+    except HTTPException:
+        raise
+    except asyncio.TimeoutError:
+        return {"success": False, "detail": "Check timed out (>180s), chạy tiếp ở background."}
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.get("/youtube/watches/{watch_id}/logs")
+async def get_yt_watch_logs(watch_id: str, limit: int = 50):
+    """Lấy lịch sử hoạt động của một YouTube watch."""
+    try:
+        from youtube_watcher import youtube_watcher
+        logs = youtube_watcher.get_logs(watch_id, limit=limit)
+        return {"success": True, "logs": logs}
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.post("/youtube/resolve_channel")
+async def resolve_yt_channel(request: dict):
+    """Xác nhận kênh YouTube từ URL và trả vá» thông tin kênh."""
+    channel_url = request.get("channel_url", "")
+    if not channel_url:
+        raise HTTPException(400, detail="channel_url is required")
+    try:
+        from youtube_watcher import YouTubeWatcher
+        watcher = YouTubeWatcher.__new__(YouTubeWatcher)
+        watcher._watches = {}
+        channel_id, channel_name, thumbnail = await watcher._resolve_channel(channel_url)
+        if not channel_id:
+            return {"success": False, "error": "Không tìm thấy channel ID. Hãy kiểm tra lại URL kênh."}
+        return {
+            "success": True,
+            "channel_id": channel_id,
+            "channel_name": channel_name,
+            "channel_thumbnail": thumbnail,
+            "rss_url": f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}",
+        }
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
+
+@router.post("/youtube/transcript")
+async def get_yt_transcript(request: dict):
+    """Lấy transcript của một video YouTube theo video_id hoặc URL."""
+    from youtube_scraper import extract_video_id, get_transcript, get_video_metadata
+
+    video_input = request.get("video_id") or request.get("url", "")
+    if not video_input:
+        raise HTTPException(400, detail="Cần truyá»n video_id hoặc url")
+
+    video_id = extract_video_id(video_input)
+    if not video_id:
+        raise HTTPException(400, detail=f"Không nhận diện được video ID từ: {video_input}")
+
+    try:
+        meta = await get_video_metadata(video_id)
+        title = meta.get("title", "")
+        transcript = get_transcript(video_id, title=title)
+        if not transcript:
+            return {"success": False, "video_id": video_id, "error": "Video không có phụ đề/transcript."}
+        return {
+            "success": True,
+            "video_id": video_id,
+            "title": title,
+            "thumbnail_url": meta.get("thumbnail_url", ""),
+            "transcript": transcript,
+            "length": len(transcript),
+        }
+    except Exception as e:
         raise HTTPException(500, detail=str(e))
 
