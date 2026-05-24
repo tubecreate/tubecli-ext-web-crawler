@@ -588,9 +588,6 @@ select option, select optgroup {
 </style>
 </head>
 <body>
-<!-- Dummy inputs to completely trick and block Chrome's password manager autofill engine -->
-<input type="text" style="display:none;" autocomplete="chrome-off">
-<input type="password" style="display:none;" autocomplete="chrome-off">
 
 <div class="header">
     <div class="header-left">
@@ -613,7 +610,7 @@ select option, select optgroup {
     </div>
     <div class="input-area" id="input-area" style="padding: 10px 14px;">
         <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-            <input type="text" id="url-input" class="url-input" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex: 1; min-width: 250px; padding: 8px 12px; height: 36px; margin: 0;" placeholder="Nhập URL bài báo hoặc Categories để cào..." data-i18n-attr="url_placeholder">
+            <input type="text" id="url-input" class="url-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex: 1; min-width: 250px; padding: 8px 12px; height: 36px; margin: 0;" placeholder="Nhập URL bài báo hoặc Categories để cào..." data-i18n-attr="url_placeholder">
             
             <select id="max-depth" class="url-input" style="width: auto; padding: 0 10px; margin: 0; font-size: 13px; height: 36px;">
                 <option value="0" data-i18n="depth_0">Độ sâu 0 (Chỉ trang đích)</option>
@@ -699,7 +696,7 @@ select option, select optgroup {
             <div class="form-grid">
                 <div class="form-full">
                     <label>URL trang cần theo dõi</label>
-                    <input type="text" id="watch-url" autocomplete="new-password" placeholder="https://vnexpress.net/the-gioi" />
+                    <input type="text" id="watch-url" autocomplete="off" placeholder="https://vnexpress.net/the-gioi" />
                 </div>
                 <div>
                     <label>Kiểm tra mỗi (giờ)</label>
@@ -717,7 +714,7 @@ select option, select optgroup {
                 </div>
                 <div>
                     <label>Lệnh xử lý AI</label>
-                    <input type="text" id="watch-instruction" autocomplete="new-password" value="dịch sang tiếng anh" placeholder="dịch sang tiếng anh" />
+                    <input type="text" id="watch-instruction" autocomplete="off" value="dịch sang tiếng anh" placeholder="dịch sang tiếng anh" />
                 </div>
             </div>
             <button class="watch-btn primary" onclick="createWatch()" style="padding:10px 24px; font-size:13px;">➕ Bắt đầu Theo dõi</button>
@@ -744,7 +741,7 @@ select option, select optgroup {
             <div style="margin-bottom:12px;">
                 <label style="display:block; font-size:12px; color:var(--text2); margin-bottom:4px; font-weight:500;">URL Kênh YouTube</label>
                 <div style="display:flex; gap:8px;">
-                    <input type="text" id="yt-channel-url" autocomplete="new-password" placeholder="https://youtube.com/@channelname" style="flex:1; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); padding:8px 12px; font-size:13px; font-family:var(--font); outline:none;" />
+                    <input type="text" id="yt-channel-url" autocomplete="off" placeholder="https://youtube.com/@channelname" style="flex:1; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); padding:8px 12px; font-size:13px; font-family:var(--font); outline:none;" />
                     <button class="watch-btn primary" onclick="resolveYtChannel()" id="btn-resolve-yt" style="padding:8px 16px; white-space:nowrap;">🔍 Kiểm tra</button>
                 </div>
                 <!-- Channel Preview -->
@@ -773,7 +770,7 @@ select option, select optgroup {
                 </div>
                 <div>
                     <label>Lệnh xử lý AI</label>
-                    <input type="text" id="yt-instruction" autocomplete="new-password" value="Viết lại thành bài báo hoàn chỉnh" />
+                    <input type="text" id="yt-instruction" autocomplete="off" value="Viết lại thành bài báo hoàn chỉnh" />
                 </div>
                 <div class="form-full" style="display:flex; align-items:center; gap:12px;">
                     <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin:0;">
@@ -822,11 +819,11 @@ select option, select optgroup {
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
                 <div class="wp-input-group">
                     <label class="wp-label" data-i18n="wp_user_label">Tài khoản (Username)</label>
-                    <input type="text" id="m-wp-user" class="wp-input" autocomplete="new-password">
+                    <input type="text" id="m-wp-user" class="wp-input" autocomplete="off">
                 </div>
                 <div class="wp-input-group">
                     <label class="wp-label" data-i18n="wp_pass_label">Mật khẩu Ứng dụng</label>
-                    <input type="text" id="m-wp-pass" class="wp-input" style="-webkit-text-security: disc; text-security: disc;" autocomplete="new-password">
+                    <input type="text" id="m-wp-pass" class="wp-input" style="-webkit-text-security: disc; text-security: disc;" autocomplete="off">
                 </div>
                 <div class="wp-input-group" style="grid-column: span 2">
                     <label class="wp-label" data-i18n="wp_indexing_label">Auto Indexing (Tùy chọn)</label>
@@ -871,7 +868,7 @@ select option, select optgroup {
         </div>
         <div class="wp-input-group">
             <label class="wp-label" data-i18n="watch_prompt_label">Lệnh xử lý AI</label>
-            <input type="text" id="edit-w-inst" class="wp-input" autocomplete="new-password">
+            <input type="text" id="edit-w-inst" class="wp-input" autocomplete="off">
         </div>
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
             <button class="btn" style="background:var(--border);" onclick="document.getElementById('edit-watch-modal').style.display='none'" data-i18n="btn_cancel">Hủy</button>
