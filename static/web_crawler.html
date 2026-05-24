@@ -95,7 +95,7 @@ select.lang-switch:hover { border-color: var(--border-hover); }
 }
 .url-input {
     width: 100%;
-    background: rgba(0, 0, 0, 0.4) !important;
+    background: rgba(0, 0, 0, 0.45) !important;
     border: 1px solid var(--border) !important;
     border-radius: 8px;
     color: var(--text) !important;
@@ -104,6 +104,15 @@ select.lang-switch:hover { border-color: var(--border-hover); }
     font-family: var(--font);
     outline: none;
     transition: all 0.2s;
+}
+.url-input:-webkit-autofill,
+.url-input:-webkit-autofill:hover, 
+.url-input:-webkit-autofill:focus, 
+.url-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #080c1d inset !important;
+    -webkit-text-fill-color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+    transition: background-color 5000s ease-in-out 0s;
 }
 .url-input::placeholder {
     color: var(--text3) !important;
@@ -587,7 +596,7 @@ select option, select optgroup {
     </div>
     <div class="input-area" id="input-area" style="padding: 10px 14px;">
         <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-            <input type="text" id="url-input" class="url-input" style="flex: 1; min-width: 250px; padding: 8px 12px; height: 36px; margin: 0;" placeholder="Nhập URL bài báo hoặc Categories để cào..." data-i18n-attr="url_placeholder">
+            <input type="text" id="url-input" class="url-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex: 1; min-width: 250px; padding: 8px 12px; height: 36px; margin: 0;" placeholder="Nhập URL bài báo hoặc Categories để cào..." data-i18n-attr="url_placeholder">
             
             <select id="max-depth" class="url-input" style="width: auto; padding: 0 10px; margin: 0; font-size: 13px; height: 36px;">
                 <option value="0" data-i18n="depth_0">Độ sâu 0 (Chỉ trang đích)</option>
