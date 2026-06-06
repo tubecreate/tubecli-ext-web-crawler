@@ -52,6 +52,9 @@ class WatchConfig:
         # WordPress category (cached from last publish)
         self.wp_category_name: Optional[str] = data.get("wp_category_name")
         self.wp_category_id: Optional[int] = data.get("wp_category_id")
+        # AI provider/model override
+        self.ai_provider: str = data.get("ai_provider", "global")
+        self.ai_model: str = data.get("ai_model", "")
 
     def to_dict(self) -> dict:
         return {
@@ -73,6 +76,8 @@ class WatchConfig:
             "is_initialized": self.is_initialized,
             "wp_category_name": self.wp_category_name,
             "wp_category_id": self.wp_category_id,
+            "ai_provider": self.ai_provider,
+            "ai_model": self.ai_model,
         }
 
 
@@ -152,7 +157,8 @@ class PageWatcher:
                   target_site: str = "", instruction: str = "dịch sang tiếng anh",
                   telegram_chat_id: int = None, telegram_token: str = None,
                   max_articles_per_check: int = 5, url_pattern: str = None,
-                  wp_category_name: str = None) -> WatchConfig:
+                  wp_category_name: str = None,
+                  ai_provider: str = "global", ai_model: str = "") -> "WatchConfig":
         """Add a new page watch."""
         # Check if same URL already watched
         for w in self._watches.values():
@@ -165,6 +171,8 @@ class PageWatcher:
                 w.telegram_chat_id = telegram_chat_id
                 w.telegram_token = telegram_token
                 w.max_articles_per_check = max_articles_per_check
+                w.ai_provider = ai_provider or "global"
+                w.ai_model = ai_model or ""
                 if wp_category_name:
                     w.wp_category_name = wp_category_name
                     w.wp_category_id = None  # Reset to resolve fresh
@@ -182,7 +190,9 @@ class PageWatcher:
             "max_articles_per_check": max_articles_per_check,
             "url_pattern": url_pattern,
             "wp_category_name": wp_category_name,
-            "next_check_at": (datetime.now() + timedelta(minutes=1)).isoformat(),  # First check soon
+            "ai_provider": ai_provider or "global",
+            "ai_model": ai_model or "",
+            "next_check_at": (datetime.now() + timedelta(minutes=1)).isoformat(),
         })
         self._watches[watch.id] = watch
         self._save_watches()
@@ -606,8 +616,15 @@ class PageWatcher:
                 if thumbnail_url and not thumbnail_url.startswith("http"):
                     thumbnail_url = None
 
-            # Step 2: AI Rewrite
-            provider, model = self._get_default_ai_model()
+            # Step 2: AI Rewrite — use watch-specific provider or fall back to global default
+            ai_provider = getattr(watch, 'ai_provider', 'global') or 'global'
+            ai_model = getattr(watch, 'ai_model', '') or ''
+            if ai_provider == 'global' or not ai_provider:
+                ai_provider, ai_model = self._get_default_ai_model()
+            elif not ai_model:
+                # Provider specified but no model — use global default model of that provider
+                _, default_model = self._get_default_ai_model()
+                ai_model = default_model
 
             rewrite_resp = await client.post(
                 f"{TUBECLI_BASE_URL}/api/v1/web_crawler/rewrite",
@@ -615,8 +632,8 @@ class PageWatcher:
                     "title": title,
                     "content": content,
                     "instruction": watch.instruction,
-                    "provider": provider,
-                    "model": model,
+                    "provider": ai_provider,
+                    "model": ai_model,
                 },
                 timeout=120
             )

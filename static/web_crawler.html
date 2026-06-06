@@ -716,6 +716,26 @@ select option, select optgroup {
                     <label>Lệnh xử lý AI</label>
                     <input type="text" id="watch-instruction" autocomplete="off" value="dịch sang tiếng anh" placeholder="dịch sang tiếng anh" />
                 </div>
+                <div>
+                    <label>AI Provider</label>
+                    <select id="watch-ai-provider" onchange="onWatchProviderChange()">
+                        <option value="global">🌐 Global AI (mặc định)</option>
+                        <option value="gemini">✨ Gemini</option>
+                        <option value="chatgpt">💬 ChatGPT</option>
+                        <option value="claude">🧠 Claude</option>
+                        <option value="grok">⚡ Grok</option>
+                        <option value="deepseek">🔵 DeepSeek</option>
+                        <option value="openrouter">🔀 OpenRouter</option>
+                        <option value="9router">🚀 9Router</option>
+                        <option value="ollama">🦙 Ollama (local)</option>
+                    </select>
+                </div>
+                <div id="watch-ai-model-group">
+                    <label>Model AI</label>
+                    <select id="watch-ai-model">
+                        <option value="">🌐 Dùng model mặc định</option>
+                    </select>
+                </div>
             </div>
             <button class="watch-btn primary" onclick="createWatch()" style="padding:10px 24px; font-size:13px;">➕ Bắt đầu Theo dõi</button>
         </div>
@@ -869,6 +889,28 @@ select option, select optgroup {
         <div class="wp-input-group">
             <label class="wp-label" data-i18n="watch_prompt_label">Lệnh xử lý AI</label>
             <input type="text" id="edit-w-inst" class="wp-input" autocomplete="off">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div class="wp-input-group" style="margin-bottom:0">
+                <label class="wp-label">AI Provider</label>
+                <select id="edit-w-ai-provider" class="wp-input" onchange="onEditWatchProviderChange()">
+                    <option value="global">🌐 Global AI</option>
+                    <option value="gemini">✨ Gemini</option>
+                    <option value="chatgpt">💬 ChatGPT</option>
+                    <option value="claude">🧠 Claude</option>
+                    <option value="grok">⚡ Grok</option>
+                    <option value="deepseek">🔵 DeepSeek</option>
+                    <option value="openrouter">🔀 OpenRouter</option>
+                    <option value="9router">🚀 9Router</option>
+                    <option value="ollama">🦙 Ollama</option>
+                </select>
+            </div>
+            <div class="wp-input-group" style="margin-bottom:0">
+                <label class="wp-label">Model AI</label>
+                <select id="edit-w-ai-model" class="wp-input">
+                    <option value="">🌐 Mặc định</option>
+                </select>
+            </div>
         </div>
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
             <button class="btn" style="background:var(--border);" onclick="document.getElementById('edit-watch-modal').style.display='none'" data-i18n="btn_cancel">Hủy</button>
@@ -2059,6 +2101,52 @@ function renderWatchesList() {
     });
 }
 
+// ════════════════════════════════════════════════════════════
+// AI PROVIDER HELPERS FOR WATCHER
+// ════════════════════════════════════════════════════════════
+
+const WATCH_AI_MODELS = {
+    'gemini':     ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.5-pro'],
+    'chatgpt':    ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'],
+    'claude':     ['claude-sonnet-4-20250514', 'claude-3-5-haiku-20241022'],
+    'grok':       ['grok-3', 'grok-3-mini', 'grok-2'],
+    'deepseek':   ['deepseek-chat', 'deepseek-reasoner'],
+    'openrouter': ['google/gemini-2.5-flash-lite', 'openai/gpt-4o-mini', 'deepseek/deepseek-r1'],
+    '9router':    ['deepseek-chat', 'deepseek-reasoner'],
+    'ollama':     ['deepseek-r1:latest', 'llama3.2', 'mistral-nemo'],
+};
+
+async function _populateModelSelect(providerSelId, modelSelId) {
+    const prov = document.getElementById(providerSelId).value;
+    const modelSel = document.getElementById(modelSelId);
+    if (prov === 'global') {
+        modelSel.innerHTML = '<option value="">\ud83c\udf10 D\u00f9ng model m\u1eb7c \u0111\u1ecbnh c\u1ee7a h\u1ec7 th\u1ed1ng</option>';
+        return;
+    }
+    if (prov === 'ollama') {
+        modelSel.innerHTML = '<option value="" disabled>\u23f3 Loading Ollama...</option>';
+        try {
+            const r = await fetch('/api/v1/ollama/models');
+            if (r.ok) { const d = await r.json(); if (d.models && d.models.length) WATCH_AI_MODELS['ollama'] = d.models.map(m => m.name || m); }
+        } catch(e) {}
+    } else if (prov === '9router') {
+        modelSel.innerHTML = '<option value="" disabled>\u23f3 Loading 9Router...</option>';
+        try {
+            const r = await fetch('/api/v1/cloud-api/9router/status');
+            if (r.ok) { const d = await r.json(); if (d.models && d.models.length) WATCH_AI_MODELS['9router'] = d.models; }
+        } catch(e) {}
+    }
+    const models = WATCH_AI_MODELS[prov] || [];
+    modelSel.innerHTML = '<option value="">\u2014 M\u1eb7c \u0111\u1ecbnh \u2014</option>' + models.map(m => `<option value="${m}">${m}</option>`).join('');
+}
+
+async function onWatchProviderChange() {
+    await _populateModelSelect('watch-ai-provider', 'watch-ai-model');
+}
+async function onEditWatchProviderChange() {
+    await _populateModelSelect('edit-w-ai-provider', 'edit-w-ai-model');
+}
+
 async function createWatch() {
     const url = document.getElementById('watch-url').value.trim();
     if (!url) { toast('Nhập URL cần theo dõi!', 'error'); return; }
@@ -2067,8 +2155,15 @@ async function createWatch() {
     const maxArticles = parseInt(document.getElementById('watch-max-articles').value) || 5;
     const targetSite = document.getElementById('watch-target-site').value;
     const instruction = document.getElementById('watch-instruction').value.trim();
+    const aiProvider = document.getElementById('watch-ai-provider').value || 'global';
+    const aiModel = document.getElementById('watch-ai-model').value || '';
 
     if (!targetSite) { toast('Chọn website đích WordPress!', 'error'); return; }
+
+    // --- Loading state ---
+    const btn = document.querySelector('.watcher-panel .watch-btn.primary');
+    const ogText = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;margin-right:6px"></span>Đang tạo...'; }
 
     try {
         const res = await fetch('/api/v1/web_crawler/watches', {
@@ -2080,6 +2175,8 @@ async function createWatch() {
                 target_site: targetSite,
                 instruction: instruction || 'dịch sang tiếng anh',
                 max_articles_per_check: maxArticles,
+                ai_provider: aiProvider,
+                ai_model: aiModel,
             })
         });
         const data = await res.json();
@@ -2088,10 +2185,13 @@ async function createWatch() {
             document.getElementById('watch-url').value = '';
             loadWatches();
         } else {
-            toast('Lỗi: ' + (data.detail || 'Unknown'), 'error');
+            const errStr = Array.isArray(data.detail) ? data.detail.map(d => d.msg || JSON.stringify(d)).join(', ') : (data.detail || data.message || 'Unknown');
+            toast('Lỗi: ' + errStr, 'error');
         }
     } catch (e) {
         toast('Lỗi kết nối: ' + e.message, 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = ogText; }
     }
 }
 
@@ -2519,6 +2619,19 @@ function openEditWatch(id, type) {
     targetSel.value = w.target_site || '';
     
     document.getElementById('edit-w-max-label').textContent = type === 'web' ? 'Tối đa bài/lần check' : 'Tối đa video/lần check';
+    
+    // Restore AI provider/model
+    const aiProv = w.ai_provider || 'global';
+    document.getElementById('edit-w-ai-provider').value = aiProv;
+    onEditWatchProviderChange().then(() => {
+        const aiMod = w.ai_model || '';
+        if (aiMod) {
+            const sel = document.getElementById('edit-w-ai-model');
+            let found = false;
+            for (const opt of sel.options) { if (opt.value === aiMod) { sel.value = aiMod; found = true; break; } }
+            if (!found) { const o = document.createElement('option'); o.value = aiMod; o.textContent = aiMod; sel.appendChild(o); sel.value = aiMod; }
+        }
+    });
     document.getElementById('edit-watch-modal').style.display = 'flex';
 }
 
@@ -2528,18 +2641,27 @@ async function submitEditWatch() {
     const max = parseInt(document.getElementById('edit-w-max').value) || 3;
     const target = document.getElementById('edit-w-target').value;
     const inst = document.getElementById('edit-w-inst').value;
+    const aiProvider = document.getElementById('edit-w-ai-provider').value || 'global';
+    const aiModel = document.getElementById('edit-w-ai-model').value || '';
     
     const payload = {
         interval_hours: interval,
         target_site: target,
-        instruction: inst
+        instruction: inst,
+        ai_provider: aiProvider,
+        ai_model: aiModel,
     };
     if (editingWatchType === 'web') {
         payload.max_articles_per_check = max;
     } else {
         payload.max_videos_per_check = max;
-        payload.embed_original_video = true; // defaulting since it's missing from edit modal
+        payload.embed_original_video = true;
     }
+
+    // --- Loading state ---
+    const btn = document.querySelector('#edit-watch-modal .btn-primary');
+    const ogText = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px"></span> Đang lưu...'; }
 
     try {
         const route = editingWatchType === 'web' ? `/api/v1/web_crawler/watches/${editingWatchId}` : `/api/v1/web_crawler/youtube/watches/${editingWatchId}`;
@@ -2554,10 +2676,13 @@ async function submitEditWatch() {
             document.getElementById('edit-watch-modal').style.display = 'none';
             if (editingWatchType === 'web') loadWatches(); else loadYtWatches();
         } else {
-            toast('Lỗi: ' + (data.detail || 'Unknown'), 'error');
+            const errStr = Array.isArray(data.detail) ? data.detail.map(d => d.msg || JSON.stringify(d)).join(', ') : (data.detail || data.message || 'Unknown');
+            toast('Lỗi: ' + errStr, 'error');
         }
     } catch(e) {
         toast('Lỗi kết nối: ' + e.message, 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = ogText; }
     }
 }
 </script>

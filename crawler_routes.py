@@ -671,13 +671,15 @@ async def list_wp_categories(wp_url: str, username: str, app_password: str):
 # â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 class WatchRequest(BaseModel):
-    url: str
+    url: Optional[str] = None
     interval_hours: float = 6
     target_site: str = ""
     instruction: str = "dịch sang tiếng anh"
     max_articles_per_check: int = 5
     url_pattern: Optional[str] = None
     wp_category_name: Optional[str] = None
+    ai_provider: Optional[str] = "global"
+    ai_model: Optional[str] = ""
 
 
 @router.get("/watches")
@@ -698,6 +700,8 @@ async def create_watch(req: WatchRequest):
         from watcher import page_watcher
 
         url = req.url
+        if not url:
+            raise HTTPException(400, detail="url is required")
         if not url.startswith("http"):
             url = "https://" + url
 
@@ -709,12 +713,16 @@ async def create_watch(req: WatchRequest):
             max_articles_per_check=req.max_articles_per_check,
             url_pattern=req.url_pattern,
             wp_category_name=req.wp_category_name,
+            ai_provider=req.ai_provider or "global",
+            ai_model=req.ai_model or "",
         )
 
         # Ensure scheduler is running
         page_watcher.start_scheduler()
 
         return {"success": True, "watch": watch.to_dict()}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(500, detail=str(e))
 
@@ -731,6 +739,8 @@ async def update_watch(watch_id: str, req: WatchRequest):
             max_articles_per_check=req.max_articles_per_check,
             url_pattern=req.url_pattern,
             wp_category_name=req.wp_category_name,
+            ai_provider=req.ai_provider or "global",
+            ai_model=req.ai_model or "",
         )
         if w:
             return {"success": True, "watch": w.to_dict()}
@@ -881,6 +891,8 @@ class YouTubeWatchRequest(BaseModel):
     embed_original_video: bool = True
     max_videos_per_check: int = 3
     wp_category_name: Optional[str] = None
+    ai_provider: Optional[str] = "global"
+    ai_model: Optional[str] = ""
 
 
 @router.get("/youtube/watches")
@@ -929,6 +941,8 @@ async def update_yt_watch(watch_id: str, req: YouTubeWatchRequest):
             embed_original_video=req.embed_original_video,
             max_videos_per_check=req.max_videos_per_check,
             wp_category_name=req.wp_category_name,
+            ai_provider=req.ai_provider or "global",
+            ai_model=req.ai_model or "",
         )
         if w:
             youtube_watcher.start_scheduler()
