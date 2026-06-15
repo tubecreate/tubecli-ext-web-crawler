@@ -14,6 +14,7 @@ class ScrapeRequest(BaseModel):
     max_depth: int = 0
     save_to_file: bool = False
     download_images: bool = False
+    browser_skill_id: Optional[str] = None
 
 @router.post("/scrape")
 async def scrape_url(req: ScrapeRequest):
@@ -58,7 +59,38 @@ async def scrape_url(req: ScrapeRequest):
 
     try:
         from tubecli.config import DATA_DIR
-        data = await SimpleScraper.scrape(req.url, req.proxy, req.max_depth, download_images=req.download_images, data_dir=DATA_DIR)
+        data = None
+        
+        if req.browser_skill_id:
+            logger.info(f"Browser skill selected, using skill: {req.browser_skill_id}")
+            try:
+                from tubecli.extensions.browser_scripts.script_routes import run_script_sync
+                import asyncio
+                result_vars = await asyncio.to_thread(
+                    run_script_sync, script_id=req.browser_skill_id, variables={"prompt": req.url}, headless=True
+                )
+                if isinstance(result_vars, dict) and result_vars:
+                    # Look for an array of articles, or just use the raw dict
+                    for k, v in result_vars.items():
+                        if isinstance(v, list) and len(v) > 0 and isinstance(v[0], dict):
+                            data = v
+                            break
+                    if not data:
+                        normalized_data = {
+                            "url": result_vars.get("url") or result_vars.get("first_article_url") or req.url,
+                            "title": result_vars.get("title") or result_vars.get("article_title") or "No Title",
+                            "content": result_vars.get("content") or result_vars.get("article_content") or "",
+                            "images": result_vars.get("images") or result_vars.get("article_images") or [],
+                            "links": result_vars.get("links") or [],
+                            "raw_vars": result_vars
+                        }
+                        data = [normalized_data]
+            except Exception as e:
+                logger.error(f"Browser skill execution error: {e}")
+                
+        if not data:
+            logger.info("Using classic HTTP scraper")
+            data = await SimpleScraper.scrape(req.url, req.proxy, req.max_depth, download_images=req.download_images, data_dir=DATA_DIR)
         
         save_path = None
         if req.save_to_file and data:
@@ -91,6 +123,25 @@ async def get_locale(lang: str):
     if os.path.exists(file_path):
         return FileResponse(file_path)
     return JSONResponse({"error": "Locale not found"}, status_code=404)
+
+@router.get("/browser_skills")
+async def get_browser_skills():
+    """Fetch available browser skills for crawler."""
+    try:
+        from tubecli.core.skill import skill_manager
+        skills = []
+        for s in skill_manager.get_all():
+            if getattr(s, "skill_format", "") == "browser_script" or (isinstance(s.workflow_data, dict) and s.workflow_data.get("extension") == "browser_scripts"):
+                script_id = s.workflow_data.get("script_id") if isinstance(s.workflow_data, dict) else None
+                if script_id:
+                    skills.append({
+                        "id": script_id,
+                        "name": s.name
+                    })
+        return {"success": True, "skills": skills}
+    except Exception as e:
+        logger.error(f"Error fetching browser skills: {e}")
+        return {"success": False, "skills": []}
 
 @router.get("/ai_models")
 async def get_ai_models():
@@ -666,20 +717,23 @@ async def list_wp_categories(wp_url: str, username: str, app_password: str):
         raise HTTPException(500, detail=str(e))
 
 
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• 
 # PAGE WATCHER ROUTES
-# â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+# â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• â• 
 
 class WatchRequest(BaseModel):
-    url: Optional[str] = None
+    url: str
     interval_hours: float = 6
     target_site: str = ""
     instruction: str = "dịch sang tiếng anh"
+    telegram_chat_id: Optional[int] = None
+    telegram_token: Optional[str] = None
     max_articles_per_check: int = 5
     url_pattern: Optional[str] = None
     wp_category_name: Optional[str] = None
     ai_provider: Optional[str] = "global"
     ai_model: Optional[str] = ""
+    browser_skill_id: Optional[str] = None
 
 
 @router.get("/watches")
@@ -710,11 +764,14 @@ async def create_watch(req: WatchRequest):
             interval_hours=req.interval_hours,
             target_site=req.target_site,
             instruction=req.instruction,
+            telegram_chat_id=req.telegram_chat_id,
+            telegram_token=req.telegram_token,
             max_articles_per_check=req.max_articles_per_check,
             url_pattern=req.url_pattern,
             wp_category_name=req.wp_category_name,
             ai_provider=req.ai_provider or "global",
             ai_model=req.ai_model or "",
+            browser_skill_id=req.browser_skill_id
         )
 
         # Ensure scheduler is running

@@ -421,7 +421,7 @@ select option, select optgroup {
 }
 
 /* Watcher Panel Styles */
-.watcher-panel { flex: 1; display: none; flex-direction: column; gap: 16px; overflow: hidden; }
+.watcher-panel { flex: 1; display: none; flex-direction: row; gap: 20px; overflow: hidden; align-items: flex-start; }
 .watcher-panel.visible { display: flex; }
 
 .watch-card {
@@ -475,8 +475,11 @@ select option, select optgroup {
     padding: 20px;
     flex-shrink: 0;
     box-shadow: 0 4px 30px rgba(0,0,0,0.15);
+    width: 360px;
+    max-height: 100%;
+    overflow-y: auto;
 }
-.watch-form .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.watch-form .form-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 16px; }
 .watch-form .form-full { grid-column: 1 / -1; }
 .watch-form label { display: block; font-size: 12px; color: var(--text3); margin-bottom: 6px; font-weight: 600; text-transform: uppercase; }
 .watch-form input, .watch-form select {
@@ -618,6 +621,10 @@ select option, select optgroup {
                 <option value="2" data-i18n="depth_2">Độ sâu 2 (Cảnh báo: Rất Chậm!)</option>
             </select>
             
+            <select id="crawler-skill" class="url-input" style="width: auto; padding: 0 10px; margin: 0; font-size: 13px; height: 36px; max-width: 200px;">
+                <option value="">Cào dữ liệu cổ điển (HTTP)</option>
+            </select>
+            
             <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text2); font-size: 12px; white-space: nowrap; user-select: none; margin: 0;">
                 <input type="checkbox" id="save-file" style="accent-color: var(--accent); transform: scale(1.05);">
                 <span data-i18n="save_server">Lưu JSON (Server)</span>
@@ -734,6 +741,12 @@ select option, select optgroup {
                     <label>Model AI</label>
                     <select id="watch-ai-model">
                         <option value="">🌐 Dùng model mặc định</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Dùng Skill (Tùy chọn)</label>
+                    <select id="watch-skill">
+                        <option value="">Mặc định (HTTP)</option>
                     </select>
                 </div>
             </div>
@@ -997,6 +1010,7 @@ async function scrapeUrl() {
     const max_depth = parseInt(document.getElementById('max-depth').value) || 0;
     const save_to_file = document.getElementById('save-file').checked;
     const download_images = document.getElementById('download-images').checked;
+    const browser_skill_id = document.getElementById('crawler-skill').value;
 
     const btn = document.getElementById('btn-scrape');
     const ogText = btn.innerHTML;
@@ -1013,10 +1027,13 @@ async function scrapeUrl() {
     document.getElementById('detail-content').innerHTML = '';
 
     try {
+        const payload = {url: input, max_depth, save_to_file, download_images};
+        if (browser_skill_id) payload.browser_skill_id = browser_skill_id;
+
         const res = await fetch('/api/v1/web_crawler/scrape', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({url: input, max_depth, save_to_file, download_images})
+            body: JSON.stringify(payload)
         });
         const apiRes = await res.json();
         
@@ -2157,6 +2174,7 @@ async function createWatch() {
     const instruction = document.getElementById('watch-instruction').value.trim();
     const aiProvider = document.getElementById('watch-ai-provider').value || 'global';
     const aiModel = document.getElementById('watch-ai-model').value || '';
+    const browserSkillId = document.getElementById('watch-skill') ? document.getElementById('watch-skill').value : '';
 
     if (!targetSite) { toast('Chọn website đích WordPress!', 'error'); return; }
 
@@ -2177,6 +2195,7 @@ async function createWatch() {
                 max_articles_per_check: maxArticles,
                 ai_provider: aiProvider,
                 ai_model: aiModel,
+                browser_skill_id: browserSkillId,
             })
         });
         const data = await res.json();
@@ -2516,7 +2535,33 @@ async function toggleYtLogs(id) {
     } else { container.style.display = 'none'; }
 }
 
-window.onload = () => { loadLocales(); loadWatchBadge(); loadYtBadge(); }
+async function loadBrowserSkills() {
+    try {
+        const res = await fetch("/api/v1/web_crawler/browser_skills");
+        const data = await res.json();
+        if (data.success && data.skills) {
+            const sel = document.getElementById("crawler-skill");
+            const watchSel = document.getElementById("watch-skill");
+            data.skills.forEach(skill => {
+                const opt = document.createElement("option");
+                opt.value = skill.id;
+                opt.textContent = `Dùng Skill: ${skill.name}`;
+                sel.appendChild(opt);
+                
+                if (watchSel) {
+                    const wOpt = document.createElement("option");
+                    wOpt.value = skill.id;
+                    wOpt.textContent = `Dùng Skill: ${skill.name}`;
+                    watchSel.appendChild(wOpt);
+                }
+            });
+        }
+    } catch(e) {
+        console.error("Failed to load skills", e);
+    }
+}
+
+window.onload = () => { loadLocales(); loadWatchBadge(); loadYtBadge(); loadBrowserSkills(); }
 
 async function loadYtBadge() {
     try {

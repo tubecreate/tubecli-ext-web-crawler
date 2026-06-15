@@ -55,6 +55,7 @@ class WatchConfig:
         # AI provider/model override
         self.ai_provider: str = data.get("ai_provider", "global")
         self.ai_model: str = data.get("ai_model", "")
+        self.browser_skill_id: Optional[str] = data.get("browser_skill_id")
 
     def to_dict(self) -> dict:
         return {
@@ -78,6 +79,7 @@ class WatchConfig:
             "wp_category_id": self.wp_category_id,
             "ai_provider": self.ai_provider,
             "ai_model": self.ai_model,
+            "browser_skill_id": self.browser_skill_id,
         }
 
 
@@ -158,7 +160,8 @@ class PageWatcher:
                   telegram_chat_id: int = None, telegram_token: str = None,
                   max_articles_per_check: int = 5, url_pattern: str = None,
                   wp_category_name: str = None,
-                  ai_provider: str = "global", ai_model: str = "") -> "WatchConfig":
+                  ai_provider: str = "global", ai_model: str = "",
+                  browser_skill_id: str = None) -> "WatchConfig":
         """Add a new page watch."""
         # Check if same URL already watched
         for w in self._watches.values():
@@ -173,6 +176,7 @@ class PageWatcher:
                 w.max_articles_per_check = max_articles_per_check
                 w.ai_provider = ai_provider or "global"
                 w.ai_model = ai_model or ""
+                w.browser_skill_id = browser_skill_id
                 if wp_category_name:
                     w.wp_category_name = wp_category_name
                     w.wp_category_id = None  # Reset to resolve fresh
@@ -192,6 +196,7 @@ class PageWatcher:
             "wp_category_name": wp_category_name,
             "ai_provider": ai_provider or "global",
             "ai_model": ai_model or "",
+            "browser_skill_id": browser_skill_id,
             "next_check_at": (datetime.now() + timedelta(minutes=1)).isoformat(),
         })
         self._watches[watch.id] = watch
@@ -329,7 +334,7 @@ class PageWatcher:
             async with httpx.AsyncClient(timeout=60) as client:
                 resp = await client.post(
                     f"{TUBECLI_BASE_URL}/api/v1/web_crawler/scrape",
-                    json={"url": watch.url, "max_depth": 0, "download_images": False}
+                    json={"url": watch.url, "max_depth": 0, "download_images": False, "browser_skill_id": getattr(watch, "browser_skill_id", None)}
                 )
                 if resp.status_code != 200:
                     raise Exception(f"Scrape failed: HTTP {resp.status_code}")
@@ -585,7 +590,7 @@ class PageWatcher:
             # Step 1: Scrape the article
             resp = await client.post(
                 f"{TUBECLI_BASE_URL}/api/v1/web_crawler/scrape",
-                json={"url": article_url, "max_depth": 0, "download_images": False}
+                json={"url": article_url, "max_depth": 0, "download_images": False, "browser_skill_id": getattr(watch, "browser_skill_id", None)}
             )
             if resp.status_code != 200:
                 return {"success": False, "error": f"Scrape failed: HTTP {resp.status_code}"}
